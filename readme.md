@@ -43,26 +43,26 @@ This project demonstrates the usage of the Microsoft Agent Framework in a Blazor
 
 Here are the available agent samples:
 
-### [Agent 01 - Basic Agent](/agent01)
+### Agent 01 - Basic Agent
 
 This agent demonstrates the basic functionality of creating and running an agent. It takes instructions and a message as input and returns a response from the AI model. It shows both a simple request/response and a streaming response.
 
-### [Agent 02 - Agent with Thread](/agent02)
+### Agent 02 - Agent with Thread
 
 This sample showcases how to use threads to have a multi-turn conversation with an agent. The agent remembers the context of the previous messages in the same thread.
 
-### [Agent 03 - Agent with Function/Tool](/agent03)
+### Agent 03 - Agent with Function/Tool
 
 This agent demonstrates how to provide functions (tools) to an agent. In this example, the agent uses `Add` and `Multiply` functions to solve a math problem that it wouldn't be able to solve on its own.
 
-### [Agent 04 - Functions with User Approval](/agent04)
+### Agent 04 - Functions with User Approval
 
 This agent builds upon the previous example by adding a user approval step before a function is executed. The agent asks for confirmation from the user before calling the `Add` or `Multiply` functions.
 
-### [Agent 05 - Structured Output](/agent05)
+### Agent 05 - Structured Output
 
 This sample shows how to get structured data (JSON) from an unstructured text input. The agent extracts information about a person into a `PersonInfo` object.
 
-### [Agent 06 - Persisted Conversation](/agent06)
+### Agent 06 - Persisted Conversation
 
 This agent demonstrates how to persist and resume a conversation. The conversation thread is serialized to a file and then deserialized to continue the conversation in a subsequent interaction.
