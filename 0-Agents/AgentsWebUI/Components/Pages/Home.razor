@@ -2,6 +2,80 @@
 
 <PageTitle>Home</PageTitle>
 
-<h1>Hello, world!</h1>
+<div class="container">
+    <div class="row">
+        <div class="col-12">
+            <h1 class="mt-5">Microsoft Agent Framework Samples</h1>
+            <p class="lead">This project demonstrates the usage of the Microsoft Agent Framework in a Blazor Web Application. It includes several sample agents, each showcasing a different feature of the framework.</p>
+        </div>
+    </div>
 
-Welcome to your new app.
+    <div class="row mt-4">
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Agent 01 - Basic Agent</h5>
+                    <p class="card-text">This agent demonstrates the basic functionality of creating and running an agent. It takes instructions and a message as input and returns a response from the AI model. It shows both a simple request/response and a streaming response.</p>
+                </div>
+                <div class="card-footer">
+                    <a href="/agent01" class="btn btn-primary">Go to Agent 1</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Agent 02 - Agent with Thread</h5>
+                    <p class="card-text">This sample showcases how to use threads to have a multi-turn conversation with an agent. The agent remembers the context of the previous messages in the same thread.</p>
+                </div>
+                <div class="card-footer">
+                    <a href="/agent02" class="btn btn-primary">Go to Agent 2</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Agent 03 - Agent with Function/Tool</h5>
+                    <p class="card-text">This agent demonstrates how to provide functions (tools) to an agent. In this example, the agent uses `Add` and `Multiply` functions to solve a math problem that it wouldn't be able to solve on its own.</p>
+                </div>
+                <div class="card-footer">
+                    <a href="/agent03" class="btn btn-primary">Go to Agent 3</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Agent 04 - Functions with User Approval</h5>
+                    <p class="card-text">This agent builds upon the previous example by adding a user approval step before a function is executed. The agent asks for confirmation from the user before calling the `Add` or `Multiply` functions.</p>
+                </div>
+                <div class="card-footer">
+                    <a href="/agent04" class="btn btn-primary">Go to Agent 4</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Agent 05 - Structured Output</h5>
+                    <p class="card-text">This sample shows how to get structured data (JSON) from an unstructured text input. The agent extracts information about a person into a `PersonInfo` object.</p>
+                </div>
+                <div class="card-footer">
+                    <a href="/agent05" class="btn btn-primary">Go to Agent 5</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Agent 06 - Persisted Conversation</h5>
+                    <p class="card-text">This agent demonstrates how to persist and resume a conversation. The conversation thread is serialized to a file and then deserialized to continue the conversation in a subsequent interaction.</p>
+                </div>
+                <div class="card-footer">
+                    <a href="/agent06" class="btn btn-primary">Go to Agent 6</a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

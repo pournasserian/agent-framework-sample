@@ -8,12 +8,6 @@ var services = builder.Services;
 services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
-services.AddSingleton<OpenRouterClientFactory>(sp =>
-{
-    var apiKey = builder.Configuration["OPEN_ROUTER_API_KEY"] ?? throw new InvalidOperationException("OPEN_ROUTER_API_KEY is not set in.");
-    return new OpenRouterClientFactory(apiKey!);
-});
-
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
