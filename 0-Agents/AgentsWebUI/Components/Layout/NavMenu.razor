@@ -1,0 +1,39 @@
+﻿<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">AgentsWebUI</a>
+    </div>
+</div>
+
+<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+
+<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+    <nav class="nav flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="agent01">
+                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Basic
+            </NavLink>
+            <NavLink class="nav-link" href="agent02">
+                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Threads
+            </NavLink>
+            <NavLink class="nav-link" href="agent03">
+                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Functions/Tools
+            </NavLink>
+            <NavLink class="nav-link" href="agent04">
+                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Function Approval
+            </NavLink>
+            <NavLink class="nav-link" href="agent05">
+                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Structured Output
+            </NavLink>
+            <NavLink class="nav-link" href="agent06">
+                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Persisted Conversation
+            </NavLink>
+        </div>
+    </nav>
+</div>
+

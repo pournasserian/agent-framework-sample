@@ -1,0 +1,110 @@
+﻿@page "/agent02"
+@inject IConfiguration Configuration
+<PageTitle>Agent 02</PageTitle>
+
+<h1>Agent 02 - Agent with Thread (Multi-conversation)</h1>
+
+<div class="form-group mb-3">
+    <label>Instructions</label>
+    <InputTextArea @bind-Value="instructions" class="form-control"></InputTextArea>
+</div>
+<div class="form-group mb-3">
+    <label>First Message</label>
+    <InputTextArea @bind-Value="firstMessage" class="form-control"></InputTextArea>
+</div>
+<div class="form-group mb-3">
+    <label>Second Message</label>
+    <InputTextArea @bind-Value="secondMessage" class="form-control"></InputTextArea>
+</div>
+<div class="form-group mb-3">
+    <button type="submit" class="btn btn-primary" disabled="@isLoading" onclick="@OnSubmit">Submit</button>
+    <button type="submit" class="btn btn-primary" disabled="@isLoading" onclick="@OnSubmitStream">Stream</button>
+</div>
+
+@if (!string.IsNullOrEmpty(firstResponse))
+{
+    <div>
+        <div class="mb-3 card">
+            <div class="card-body">
+                <h5 class="card-title">Response</h5>
+                <p class="card-text">@firstResponse</p>
+                <hr />
+                <p class="card-text">@secondResponse</p>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private string instructions = "You are good at telling jokes.";
+    private string firstMessage = "Tell me a long joke about a pirate. It should be at least two pargraphs.";
+    private string secondMessage = "Now add some emojis to the joke and tell it in the voice of a pirate's parrot.";
+
+    private string modelName = "openai/gpt-4.1-nano";
+    private string endpoint = "https://openrouter.ai/api/v1";
+    private ChatClientAgent agent = default!;
+
+    private string firstResponse = string.Empty;
+    private string secondResponse = string.Empty;
+
+    private bool isLoading = false;
+
+    protected override Task OnInitializedAsync()
+    {
+        var apiKey = Configuration["OPEN_ROUTER_API_KEY"] ??
+            throw new InvalidOperationException("OPEN_ROUTER_API_KEY is not set in.");
+
+        var openAIClientOptions = new OpenAIClientOptions
+        {
+            Endpoint = new Uri(endpoint),
+        };
+
+        var credential = new ApiKeyCredential(apiKey);
+        var chatClient = new ChatClient(modelName, credential, openAIClientOptions);
+        agent = chatClient.CreateAIAgent(instructions: instructions, name: "Joker");
+
+        return base.OnInitializedAsync();
+    }
+
+    private async Task OnSubmit()
+    {
+        firstResponse = string.Empty;
+        secondResponse = string.Empty;
+
+        isLoading = true;
+
+        var thread = agent.GetNewThread();
+
+        var agentResponse = await agent.RunAsync(firstMessage, thread);
+        firstResponse = agentResponse.ToString();
+
+        await InvokeAsync(StateHasChanged);
+
+        agentResponse = await agent.RunAsync(secondMessage, thread);
+        secondResponse = agentResponse.ToString();
+
+        isLoading = false;
+    }
+
+    private async Task OnSubmitStream()
+    {
+        firstResponse = string.Empty;
+        secondResponse = string.Empty;
+        isLoading = true;
+
+        var thread = agent.GetNewThread();
+
+        await foreach (var update in agent.RunStreamingAsync(firstMessage, thread))
+        {
+            firstResponse += update.ToString();
+            await InvokeAsync(StateHasChanged);
+        }
+        await foreach (var update in agent.RunStreamingAsync(secondMessage, thread))
+        {
+            secondResponse += update.ToString();
+            await InvokeAsync(StateHasChanged);
+        }
+
+        isLoading = false;
+    }
+}

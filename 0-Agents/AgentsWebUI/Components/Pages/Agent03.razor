@@ -1,0 +1,110 @@
+﻿@page "/agent03"
+@inject IConfiguration Configuration
+
+<PageTitle>Agent 03</PageTitle>
+
+<h1>Agent 01 - Agent with Function/Tool</h1>
+
+<div class="form-group mb-3">
+    <label>Instructions</label>
+    <InputTextArea @bind-Value="instructions" class="form-control"></InputTextArea>
+</div>
+<div class="form-group mb-3">
+    <label>Message</label>
+    <InputTextArea @bind-Value="message" class="form-control"></InputTextArea>
+</div>
+<div class="form-group mb-3">
+    <button type="submit" class="btn btn-primary" disabled="@isLoading" onclick="@OnSubmit">Submit</button>
+    <button type="submit" class="btn btn-primary" disabled="@isLoading" onclick="@OnSubmitStream">Stream</button>
+</div>
+
+@if (!string.IsNullOrEmpty(response))
+{
+    <div>
+        <div class="mb-3 card">
+            <div class="card-body">
+                <h5 class="card-title">Response</h5>
+                <p class="card-text">@response</p>
+            </div>
+        </div>
+        <div class="mb-3 card">
+            <div class="card-body">
+                <h5 class="card-title">Log</h5>
+                <p class="card-text">@((MarkupString)log)</p>
+            </div>
+        </div>
+    </div>
+
+}
+
+@code {
+    private string message = "I have purchased 2 apples for $5. I purchased 10 more apples $4 each. How much is the value of my apples?";
+    private string instructions = "You are good at math.";
+    private string modelName = "openai/gpt-4.1-nano";
+    private string endpoint = "https://openrouter.ai/api/v1";
+    private ChatClientAgent agent = default!;
+
+    private string response = string.Empty;
+    private string log = string.Empty;
+    private bool isLoading = false;
+
+    protected override Task OnInitializedAsync()
+    {
+        var apiKey = Configuration["OPEN_ROUTER_API_KEY"] ??
+            throw new InvalidOperationException("OPEN_ROUTER_API_KEY is not set in.");
+
+        var openAIClientOptions = new OpenAIClientOptions
+        {
+            Endpoint = new Uri(endpoint),
+        };
+
+        var credential = new ApiKeyCredential(apiKey);
+        var chatClient = new ChatClient(modelName, credential, openAIClientOptions);
+        agent = chatClient.CreateAIAgent(instructions: instructions, tools: [AIFunctionFactory.Create(Add), AIFunctionFactory.Create(Multiply)]);
+
+        return base.OnInitializedAsync();
+    }
+
+    private async Task OnSubmit()
+    {
+        response = string.Empty;
+        isLoading = true;
+        log = "Starting synchronous run...<br />";
+
+        var agentResponse = await agent.RunAsync(message);
+
+        response = agentResponse.ToString();
+
+        isLoading = false;
+    }
+
+    private async Task OnSubmitStream()
+    {
+        response = string.Empty;
+        isLoading = true;
+
+        log += "Starting streaming run...<br />";
+
+        await foreach (var update in agent.RunStreamingAsync(message))
+        {
+            response += update.ToString();
+            await InvokeAsync(StateHasChanged);
+        }
+
+        isLoading = false;
+    }
+
+    [Description("Add two given numbers.")]
+    private float Add([Description("First number")] float a, [Description("Second number")] float b)
+    {
+        log += $"Adding {a} and {b} <br />";
+        return a + b;
+    }
+
+    [Description("Multiply two given numbers.")]
+    private float Multiply([Description("First number")] float a, [Description("Second number")] float b)
+    {
+        log += $"Multiplying {a} and {b} <br />";
+        return a * b;
+    }
+}

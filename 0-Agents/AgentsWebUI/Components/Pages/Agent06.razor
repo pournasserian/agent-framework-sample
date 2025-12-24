@@ -1,0 +1,155 @@
+﻿@page "/agent06"
+@inject IConfiguration Configuration
+
+<PageTitle>Agent 06</PageTitle>
+
+<h1>Agent 06 - Persisted Conversation</h1>
+
+<div class="form-group mb-3">
+    <label>Instructions</label>
+    <InputTextArea @bind-Value="instructions" class="form-control"></InputTextArea>
+</div>
+<div class="form-group mb-3">
+    <label>Message</label>
+    <InputTextArea @bind-Value="message" class="form-control"></InputTextArea>
+</div>
+<div class="form-group mb-3">
+    <button type="submit" class="btn btn-primary" disabled="@isLoading" onclick="@OnSubmit">Submit</button>
+    <button type="submit" class="btn btn-primary" disabled="@isLoading" onclick="@OnSubmitStream">Stream</button>
+</div>
+
+@if (!string.IsNullOrEmpty(response))
+{
+    <div class="mw-100">
+        <div class="mb-3 card">
+            <div class="card-body">
+                <h5 class="card-title">Response</h5>
+                <p class="card-text">@((MarkupString)@response)</p>
+            </div>
+        </div>
+        <div class="mb-3 card">
+            <div class="card-body">
+                <h5 class="card-title">Log</h5>
+                <p class="card-text">@((MarkupString)log)</p>
+            </div>
+        </div>
+        <div class="mb-3 card">
+            <div class="card-body mw-100">
+                <h5 class="card-title">Thread</h5>
+                <pre class="mw-100"> 
+                    <code class="text-break">@threadLog</code>
+                </pre>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private string message = "Tell me a short joke about a pirate.";
+    private string instructions = "You are good at telling jokes.";
+    private string modelName = "openai/gpt-4.1-nano";
+    private string endpoint = "https://openrouter.ai/api/v1";
+    private ChatClientAgent agent = default!;
+
+    private string response = string.Empty;
+    private string log = string.Empty;
+    private string threadLog = string.Empty;
+    private bool isLoading = false;
+
+    protected override Task OnInitializedAsync()
+    {
+        var apiKey = Configuration["OPEN_ROUTER_API_KEY"] ??
+            throw new InvalidOperationException("OPEN_ROUTER_API_KEY is not set in.");
+
+        var openAIClientOptions = new OpenAIClientOptions
+        {
+            Endpoint = new Uri(endpoint),
+        };
+
+        var credential = new ApiKeyCredential(apiKey);
+        var chatClient = new ChatClient(modelName, credential, openAIClientOptions);
+        agent = chatClient.CreateAIAgent(instructions: instructions, name: "Joker");
+
+        return base.OnInitializedAsync();
+    }
+
+    private async Task OnSubmit()
+    {
+        log = string.Empty;
+        threadLog = string.Empty;
+        response = string.Empty;
+        isLoading = true;
+
+        log = "Starting new thread...<br />";
+        var thread = agent.GetNewThread();
+        var agentResponse = await agent.RunAsync(message, thread);
+        response = agentResponse.ToString() + "<hr />";
+
+        log += "Serializing thread to temporary file...<br />";
+        var serializedThread = thread.Serialize();
+
+        threadLog = JsonSerializer.Serialize(serializedThread, new JsonSerializerOptions { WriteIndented = true });
+        var tempFilePath = Path.GetTempFileName();
+
+        log += $"Serialized thread saved to {tempFilePath}<br />";
+        await File.WriteAllTextAsync(tempFilePath, JsonSerializer.Serialize(serializedThread));
+
+        log += "Reloading thread from temporary file...<br />";
+        var reloadedSerializedThread = JsonElement.Parse(await File.ReadAllTextAsync(tempFilePath));
+
+        log += "Deserializing thread...<br />";
+        var resumedThread = agent.DeserializeThread(reloadedSerializedThread);
+
+        log += "Continuing conversation in resumed thread...<br />";
+        var agentResponse2 = await agent.RunAsync("Now tell the same joke in the voice of a pirate, and add some emojis to the joke.", resumedThread);
+
+        threadLog += JsonSerializer.Serialize(resumedThread.Serialize(), new JsonSerializerOptions { WriteIndented = true });
+
+        response += agentResponse2.ToString();
+
+        isLoading = false;
+    }
+
+    private async Task OnSubmitStream()
+    {
+        log = string.Empty;
+        threadLog = string.Empty;
+        response = string.Empty;
+        isLoading = true;
+
+        log = "Starting new thread...<br />";
+        var thread = agent.GetNewThread();
+        await foreach (var update in agent.RunStreamingAsync(message, thread))
+        {
+            response += update.ToString();
+            await InvokeAsync(StateHasChanged);
+        }
+        response += "<hr />";
+
+        log += "Serializing thread to temporary file...<br />";
+        var serializedThread = thread.Serialize();
+
+        threadLog = JsonSerializer.Serialize(serializedThread, new JsonSerializerOptions { WriteIndented = true });
+        var tempFilePath = Path.GetTempFileName();
+
+        log += $"Serialized thread saved to {tempFilePath}<br />";
+        await File.WriteAllTextAsync(tempFilePath, JsonSerializer.Serialize(serializedThread));
+
+        log += "Reloading thread from temporary file...<br />";
+        var reloadedSerializedThread = JsonElement.Parse(await File.ReadAllTextAsync(tempFilePath));
+
+        log += "Deserializing thread...<br />";
+        var resumedThread = agent.DeserializeThread(reloadedSerializedThread);
+
+        log += "Continuing conversation in resumed thread...<br />";
+        await foreach (var update in agent.RunStreamingAsync("Now tell the same joke in the voice of a pirate, and add some emojis to the joke.", resumedThread))
+        {
+            response += update.ToString();
+            await InvokeAsync(StateHasChanged);
+        }
+
+        threadLog += JsonSerializer.Serialize(resumedThread.Serialize(), new JsonSerializerOptions { WriteIndented = true });
+
+        isLoading = false;
+    }
+}

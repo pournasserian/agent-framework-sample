@@ -1,0 +1,126 @@
+﻿@page "/agent05"
+
+@inject IConfiguration Configuration
+
+<PageTitle>Agent 05</PageTitle>
+
+<h1>Agent 05 - Structured Output</h1>
+
+<div class="form-group mb-3">
+    <label>Instructions</label>
+    <InputTextArea @bind-Value="instructions" class="form-control"></InputTextArea>
+</div>
+<div class="form-group mb-3">
+    <label>Message</label>
+    <InputTextArea @bind-Value="message" class="form-control"></InputTextArea>
+</div>
+<div class="form-group mb-3">
+    <button type="submit" class="btn btn-primary" disabled="@isLoading" onclick="@OnSubmit">Submit</button>
+    <button type="submit" class="btn btn-primary" disabled="@isLoading" onclick="@OnSubmitStream">Stream</button>
+</div>
+
+@if (!string.IsNullOrEmpty(response))
+{
+    <div>
+        <div class="mb-3 card">
+            <div class="card-body">
+                <h5 class="card-title">Response</h5>
+                <p class="card-text">@((MarkupString)response)</p>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private string message = "Please provide information about John Smith, who is a 35-year-old software engineer.";
+    private string instructions = "You are a helpful assistant.";
+    private string modelName = "openai/gpt-4.1-nano";
+    private string endpoint = "https://openrouter.ai/api/v1";
+    private ChatClient chatClient = default!;
+
+    private string response = string.Empty;
+    private bool isLoading = false;
+
+    protected override Task OnInitializedAsync()
+    {
+        var apiKey = Configuration["OPEN_ROUTER_API_KEY"] ??
+            throw new InvalidOperationException("OPEN_ROUTER_API_KEY is not set in.");
+
+        var openAIClientOptions = new OpenAIClientOptions
+        {
+            Endpoint = new Uri(endpoint),
+        };
+
+        var credential = new ApiKeyCredential(apiKey);
+        chatClient = new ChatClient(modelName, credential, openAIClientOptions);
+
+        return base.OnInitializedAsync();
+    }
+
+    private async Task OnSubmit()
+    {
+        response = string.Empty;
+        isLoading = true;        
+
+        var agent = chatClient.CreateAIAgent(instructions: instructions, name: "HelpfulAssistant");
+        var agentResponse = await agent.RunAsync<PersonInfo>(message);
+        response = $"Name: {agentResponse.Result.Name} <br />";
+        response += $"Age: {agentResponse.Result.Age} <br />";
+        response += $"Occupation: {agentResponse.Result.Occupation} <br />";
+
+        var agentOptions = new ChatClientAgentOptions
+        {
+            Name = "HelpfulAssistant",
+            ChatOptions = new()
+            {
+                Instructions = instructions,
+                ResponseFormat = Microsoft.Extensions.AI.ChatResponseFormat.ForJsonSchema<PersonInfo>()
+            }
+        };
+
+        isLoading = false;
+    }
+
+    private async Task OnSubmitStream()
+    {
+        response = string.Empty;
+        isLoading = true;
+
+        var agentOptions = new ChatClientAgentOptions
+        {
+            Name = "HelpfulAssistant",
+            ChatOptions = new()
+            {
+                Instructions = instructions,
+                ResponseFormat = Microsoft.Extensions.AI.ChatResponseFormat.ForJsonSchema<PersonInfo>()
+            }
+        };
+
+        var agent = chatClient.CreateAIAgent(agentOptions);
+
+        // Invoke the agent with some unstructured input while streaming, to extract the structured information from.
+        var updates = agent.RunStreamingAsync(message);
+        var personInfo = (await updates.ToAgentRunResponseAsync()).Deserialize<PersonInfo>(JsonSerializerOptions.Web);
+        response += $"Name: {personInfo.Name}<br />";
+        response += $"Age: {personInfo.Age}<br />";
+        response += $"Occupation: {personInfo.Occupation}<br />";
+
+        isLoading = false;
+    }
+
+    /// <summary>
+    /// Represents information about a person, including their name, age, and occupation, matched to the JSON schema used in the agent.
+    /// </summary>
+    [Description("Information about a person including their name, age, and occupation")]
+    public class PersonInfo
+    {
+        [JsonPropertyName("name")]
+        public string? Name { get; set; }
+
+        [JsonPropertyName("age")]
+        public int? Age { get; set; }
+
+        [JsonPropertyName("occupation")]
+        public string? Occupation { get; set; }
+    }
+}

@@ -1,0 +1,13 @@
+﻿global using AgentsWebUI.OpenRouter;
+global using Microsoft.Extensions.Configuration;
+global using Microsoft.Extensions.DependencyInjection;
+global using Microsoft.Extensions.DependencyInjection.Extensions;
+global using Microsoft.Extensions.Options;
+global using OpenAI;
+global using OpenAI.Chat;
+global using System.ClientModel;
+global using Microsoft.Agents.AI;
+global using Microsoft.Extensions.AI;
+global using System.ComponentModel;
+global using System.Text.Json.Serialization;
+global using System.Text.Json;
