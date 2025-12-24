@@ -1,0 +1,80 @@
+﻿@page "/agent08"
+@inject IConfiguration Configuration
+
+<PageTitle>Agent 08</PageTitle>
+
+<h1>Agent 08 - Agent Using Image</h1>
+
+<div class="form-group mb-3">
+    <label>Instructions</label>
+    <InputTextArea @bind-Value="instructions" class="form-control"></InputTextArea>
+</div>
+<div class="form-group mb-3">
+    <label>Message</label>
+    <InputTextArea @bind-Value="message" class="form-control"></InputTextArea>
+</div>
+<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg" style="max-width: 400px" class="mb-3" />
+<div class="form-group mb-3">
+    <button type="submit" class="btn btn-primary" disabled="@isLoading" onclick="@OnSubmitStream">Stream</button>
+</div>
+
+@if (!string.IsNullOrEmpty(response))
+{
+    <div>
+        <div class="mb-3 card">
+            <div class="card-body">
+                <h5 class="card-title">Response</h5>
+                <p class="card-text">@response</p>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private string message = "What do you see in this image?";
+    private string instructions = "You are a helpful agent that can analyze images.";
+    private string modelName = "openai/gpt-4o";
+    private string endpoint = "https://openrouter.ai/api/v1";
+    private ChatClientAgent agent = default!;
+
+    private string response = string.Empty;
+    private bool isLoading = false;
+
+    protected override Task OnInitializedAsync()
+    {
+        var apiKey = Configuration["OPEN_ROUTER_API_KEY"] ??
+            throw new InvalidOperationException("OPEN_ROUTER_API_KEY is not set in.");
+
+        var openAIClientOptions = new OpenAIClientOptions
+        {
+            Endpoint = new Uri(endpoint),
+        };
+
+        var credential = new ApiKeyCredential(apiKey);
+        var chatClient = new ChatClient(modelName, credential, openAIClientOptions);
+        agent = chatClient.CreateAIAgent(instructions: instructions, name: "VisionAgent");
+
+        return base.OnInitializedAsync();
+    }
+
+    private async Task OnSubmitStream()
+    {
+        response = string.Empty;
+        isLoading = true;
+
+        var chatMessage = new Microsoft.Extensions.AI.ChatMessage(ChatRole.User,
+            [
+                new TextContent(message),
+                new UriContent("https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg", "image/jpeg")
+            ]);
+        var thread = agent.GetNewThread();
+
+        await foreach (var update in agent.RunStreamingAsync(chatMessage, thread))
+        {
+            response += update.ToString();
+            await InvokeAsync(StateHasChanged);
+        }
+
+        isLoading = false;
+    }
+}
