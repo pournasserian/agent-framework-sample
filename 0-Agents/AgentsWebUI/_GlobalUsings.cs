@@ -8,3 +8,5 @@ global using Microsoft.Extensions.AI;
 global using System.ComponentModel;
 global using System.Text.Json.Serialization;
 global using System.Text.Json;
+global using Microsoft.SemanticKernel.Connectors.InMemory;
+global using Microsoft.Extensions.VectorData;

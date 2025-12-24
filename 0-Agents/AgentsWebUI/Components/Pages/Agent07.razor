@@ -1,0 +1,232 @@
+﻿@page "/agent07"
+@inject IConfiguration Configuration
+
+<PageTitle>Agent 07</PageTitle>
+
+<h1>Agent 07 - Custom Thread Storage</h1>
+
+<div class="form-group mb-3">
+    <label>Instructions</label>
+    <InputTextArea @bind-Value="instructions" class="form-control"></InputTextArea>
+</div>
+<div class="form-group mb-3">
+    <label>Message</label>
+    <InputTextArea @bind-Value="message" class="form-control"></InputTextArea>
+</div>
+<div class="form-group mb-3">
+    <button type="submit" class="btn btn-primary" disabled="@isLoading" onclick="@OnSubmit">Submit</button>
+    <button type="submit" class="btn btn-primary" disabled="@isLoading" onclick="@OnSubmitStream">Stream</button>
+</div>
+
+@if (!string.IsNullOrEmpty(response))
+{
+    <div class="mw-100">
+        <div class="mb-3 card">
+            <div class="card-body">
+                <h5 class="card-title">Response</h5>
+                <p class="card-text">@((MarkupString)@response)</p>
+            </div>
+        </div>
+        <div class="mb-3 card">
+            <div class="card-body">
+                <h5 class="card-title">Log</h5>
+                <p class="card-text">@((MarkupString)log)</p>
+            </div>
+        </div>
+        <div class="mb-3 card">
+            <div class="card-body mw-100">
+                <h5 class="card-title">Thread</h5>
+                <pre class="mw-100"> 
+                    <code class="text-break">@threadLog</code>
+                </pre>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private string message = "Tell me a short joke about a pirate.";
+    private string instructions = "You are good at telling jokes.";
+    private string modelName = "openai/gpt-4.1-nano";
+    private string endpoint = "https://openrouter.ai/api/v1";
+    private ChatClientAgent agent = default!;
+
+    private string response = string.Empty;
+    private string log = string.Empty;
+    private string threadLog = string.Empty;
+    private bool isLoading = false;
+
+    protected override Task OnInitializedAsync()
+    {
+        var apiKey = Configuration["OPEN_ROUTER_API_KEY"] ??
+            throw new InvalidOperationException("OPEN_ROUTER_API_KEY is not set in.");
+
+        var openAIClientOptions = new OpenAIClientOptions
+        {
+            Endpoint = new Uri(endpoint),
+        };
+
+        var credential = new ApiKeyCredential(apiKey);
+        var chatClient = new ChatClient(modelName, credential, openAIClientOptions);
+
+        var vectorStore = new InMemoryVectorStore();
+        var chatClientAgentOptions = new ChatClientAgentOptions
+            {
+            ChatOptions = new() { Instructions = instructions },
+                Name = "Joker",
+                ChatMessageStoreFactory = ctx =>
+                {
+                    return new VectorChatMessageStore(vectorStore, ctx.SerializedState, ctx.JsonSerializerOptions);
+                }
+            };
+
+        agent = chatClient.CreateAIAgent(chatClientAgentOptions);
+
+        return base.OnInitializedAsync();
+    }
+
+    private async Task OnSubmit()
+    {
+        log = string.Empty;
+        threadLog = string.Empty;
+        response = string.Empty;
+        isLoading = true;
+
+        log = "Starting new thread...<br />";
+        var thread = agent.GetNewThread();
+        var agentResponse = await agent.RunAsync(message, thread);
+        response = agentResponse.ToString() + "<hr />";
+
+        log += "Serializing thread to show in thread log...<br />";
+        var serializedThread = thread.Serialize();
+        threadLog = JsonSerializer.Serialize(serializedThread, new JsonSerializerOptions { WriteIndented = true });
+
+        log += "Deserializing thread...<br />";
+        var resumedThread = agent.DeserializeThread(serializedThread);
+
+        log += "Continuing conversation in resumed thread...<br />";
+        var agentResponse2 = await agent.RunAsync("Now tell the same joke in the voice of a pirate, and add some emojis to the joke.", resumedThread);
+        response += agentResponse2.ToString();
+        threadLog += JsonSerializer.Serialize(resumedThread.Serialize(), new JsonSerializerOptions { WriteIndented = true });
+
+        // We can access the VectorChatMessageStore via the thread's GetService method if we need to read the key under which threads are stored.
+        var messageStore = resumedThread.GetService<VectorChatMessageStore>()!;
+        log += $"\nThread is stored in vector store under key: {messageStore.ThreadDbKey}";
+        isLoading = false;
+    }
+
+    private async Task OnSubmitStream()
+    {
+        log = string.Empty;
+        threadLog = string.Empty;
+        response = string.Empty;
+        isLoading = true;
+
+        log = "Starting new thread...<br />";
+        var thread = agent.GetNewThread();
+        var agentResponse = await agent.RunAsync(message, thread);
+        await foreach (var update in agent.RunStreamingAsync(message, thread))
+        {
+            response += update.ToString();
+            await InvokeAsync(StateHasChanged);
+        }
+        response += "<hr />";
+
+        log += "Serializing thread to show in thread log...<br />";
+        var serializedThread = thread.Serialize();
+        threadLog = JsonSerializer.Serialize(serializedThread, new JsonSerializerOptions { WriteIndented = true });
+
+        log += "Deserializing thread...<br />";
+        var resumedThread = agent.DeserializeThread(serializedThread);
+
+        log += "Continuing conversation in resumed thread...<br />";
+
+        await foreach (var update in agent.RunStreamingAsync("Now tell the same joke in the voice of a pirate, and add some emojis to the joke.", resumedThread))
+        {
+            response += update.ToString();
+            await InvokeAsync(StateHasChanged);
+        }
+
+        threadLog += JsonSerializer.Serialize(resumedThread.Serialize(), new JsonSerializerOptions { WriteIndented = true });
+
+        isLoading = false;
+    }
+
+    internal sealed class VectorChatMessageStore : ChatMessageStore
+    {
+        private readonly VectorStore _vectorStore;
+
+        public VectorChatMessageStore(VectorStore vectorStore, JsonElement serializedStoreState, JsonSerializerOptions? jsonSerializerOptions = null)
+        {
+            this._vectorStore = vectorStore ?? throw new ArgumentNullException(nameof(vectorStore));
+
+            if (serializedStoreState.ValueKind is JsonValueKind.String)
+            {
+                // Here we can deserialize the thread id so that we can access the same messages as before the suspension.
+                this.ThreadDbKey = serializedStoreState.Deserialize<string>();
+            }
+        }
+
+        public string? ThreadDbKey { get; private set; }
+
+        public override async Task AddMessagesAsync(IEnumerable<Microsoft.Extensions.AI.ChatMessage> messages, CancellationToken cancellationToken = default)
+        {
+            this.ThreadDbKey ??= Guid.NewGuid().ToString("N");
+
+            var collection = this._vectorStore.GetCollection<string, ChatHistoryItem>("ChatHistory");
+            await collection.EnsureCollectionExistsAsync(cancellationToken);
+
+            await collection.UpsertAsync(messages.Select(x => new ChatHistoryItem()
+            {
+                Key = this.ThreadDbKey + x.MessageId,
+                Timestamp = DateTimeOffset.UtcNow,
+                ThreadId = this.ThreadDbKey,
+                SerializedMessage = JsonSerializer.Serialize(x),
+                MessageText = x.Text
+            }), cancellationToken);
+        }
+
+        public override async Task<IEnumerable<Microsoft.Extensions.AI.ChatMessage>> GetMessagesAsync(CancellationToken cancellationToken = default)
+        {
+            var collection = this._vectorStore.GetCollection<string, ChatHistoryItem>("ChatHistory");
+            await collection.EnsureCollectionExistsAsync(cancellationToken);
+
+            var records = await collection
+                .GetAsync(
+                    x => x.ThreadId == this.ThreadDbKey, 10,
+                    new() { OrderBy = x => x.Descending(y => y.Timestamp) },
+                    cancellationToken)
+                .ToListAsync(cancellationToken);
+
+            var messages = records.ConvertAll(x => JsonSerializer.Deserialize<Microsoft.Extensions.AI.ChatMessage>(x.SerializedMessage!)!)
+;
+            messages.Reverse();
+            return messages;
+        }
+
+        public override JsonElement Serialize(JsonSerializerOptions? jsonSerializerOptions = null) =>
+            // We have to serialize the thread id, so that on deserialization we can retrieve the messages using the same thread id.
+            JsonSerializer.SerializeToElement(this.ThreadDbKey);
+
+        /// <summary>
+        /// The data structure used to store chat history items in the vector store.
+        /// </summary>
+        private sealed class ChatHistoryItem
+        {
+            [VectorStoreKey]
+            public string? Key { get; set; }
+
+            [VectorStoreData]
+            public string? ThreadId { get; set; }
+
+            [VectorStoreData]
+            public DateTimeOffset? Timestamp { get; set; }
+
+            [VectorStoreData]
+            public string? SerializedMessage { get; set; }
+
+            [VectorStoreData]
+            public string? MessageText { get; set; }
+        }
+    }
+}
