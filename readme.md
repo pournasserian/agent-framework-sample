@@ -66,3 +66,11 @@ This sample shows how to get structured data (JSON) from an unstructured text in
 ### Agent 06 - Persisted Conversation
 
 This agent demonstrates how to persist and resume a conversation. The conversation thread is serialized to a file and then deserialized to continue the conversation in a subsequent interaction.
+
+### Agent 07 - Custom Thread Storage
+
+This agent demonstrates how to use a custom `VectorChatMessageStore` to persist conversation history in memory. This allows for more flexible and scalable storage of conversation threads.
+
+### Agent 08 - Agent Using Image
+
+This sample shows how to use a multimodal model to analyze an image. The agent takes an image URL and a text prompt as input and returns a description of the image content.
