@@ -1,0 +1,152 @@
+﻿@page "/agent09"
+@using Markdig
+@using ModelContextProtocol.Client
+@inject IConfiguration Configuration
+
+<PageTitle>Agent 09</PageTitle>
+
+<h1>Agent 09 - Using Remote MCP Server</h1>
+
+<div class="form-group mb-3">
+    <label>Instructions</label>
+    <InputTextArea @bind-Value="instructions" class="form-control" style="height:200px"></InputTextArea>
+</div>
+<div class="form-group mb-3">
+    <label>Message</label>
+    <InputTextArea @bind-Value="message" class="form-control"></InputTextArea>
+</div>
+<div class="form-group mb-3">
+    <button type="submit" class="btn btn-primary" disabled="@isLoading" onclick="@OnSubmitStream">Without MCP</button>
+    <button type="submit" class="btn btn-primary" disabled="@isLoading" onclick="@OnSubmitStreamWithMcp">With MCP</button>
+</div>
+
+@if (!string.IsNullOrEmpty(response))
+{
+    <div>
+        <div class="mb-3 card">
+            <div class="card-body">
+                <h5 class="card-title">Response</h5>
+                <p class="card-text"> @((MarkupString)RenderMarkdown(response))</p>
+            </div>
+        </div>
+        <div class="mb-3 card">
+            <div class="card-body">
+                <h5 class="card-title">Log</h5>
+                <p class="card-text">@((MarkupString)log)</p>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+#pragma warning disable MEAI001 // Suppress evaluation-only diagnostic for HostedMcpServerTool
+
+    private string message = "What are the new features in C# 14?";
+    private string instructions =
+        """
+            Act as a principal .NET architect.
+            You answer questions by searching the Microsoft Learn content only.
+            Rules:
+                - Use the attached Microsoft Learn MCP tools when answering questions about Microsoft technologies.
+                - Prefer official docs and code samples.
+                - Avoid assumptions or undocumented behavior.
+                - Give the answer in Markdown format.
+                - Always include the resource references you used.
+
+        """;
+
+    private string modelName = "openai/gpt-4.1-nano";
+    private string endpoint = "https://openrouter.ai/api/v1";
+    private ChatClientAgent agent = default!;
+
+    private string response = string.Empty;
+    private string log = string.Empty;
+    private bool isLoading = false;
+
+    private async Task OnSubmitStream()
+    {
+        response = string.Empty;
+        log = string.Empty;
+        isLoading = true;
+
+        var apiKey = Configuration["OPEN_ROUTER_API_KEY"] ??
+            throw new InvalidOperationException("OPEN_ROUTER_API_KEY is not set in.");
+
+        var openAIClientOptions = new OpenAIClientOptions
+        {
+            Endpoint = new Uri(endpoint),
+        };
+
+        var credential = new ApiKeyCredential(apiKey);
+        var chatClient = new ChatClient(modelName, credential, openAIClientOptions);
+        agent = chatClient.CreateAIAgent(instructions: instructions, name: "DocsAgent");
+
+        await foreach (var update in agent.RunStreamingAsync(message))
+        {
+            response += update.ToString();
+            await InvokeAsync(StateHasChanged);
+        }
+
+        isLoading = false;
+    }
+
+    private async Task OnSubmitStreamWithMcp()
+    {
+        response = string.Empty;
+        isLoading = true;
+
+        // Create MCP client connected to the *remote* Microsoft Learn MCP server over HTTP.
+        // HttpClientTransport supports Streamable HTTP and can fall back to SSE when AutoDetect is used. :contentReference[oaicite:5]{index=5}
+        log = "Creating MCP client... <br />";
+        await using var mcpTransport = new HttpClientTransport(new HttpClientTransportOptions
+        {
+            Name = "Microsoft Learn MCP (remote)",
+            Endpoint = new Uri("https://learn.microsoft.com/api/mcp"),
+            TransportMode = HttpTransportMode.AutoDetect, // streamable HTTP + SSE behavior handled by transport
+        });
+
+        // New SDK uses McpClient (abstract class) + McpClient.CreateAsync(...) instead of IMcpClient/McpClientFactory. :contentReference[oaicite:6]{index=6}
+        log += "Connecting to Microsoft Learn MCP... <br />";
+        await using McpClient mcpClient = await McpClient.CreateAsync(mcpTransport);
+
+        // Discover available MCP tools (e.g. microsoft_docs_search, microsoft_docs_fetch, etc.) :contentReference[oaicite:7]{index=7}
+        log += "Discovering MCP tools... <br />";
+        var mcpTools = await mcpClient.ListToolsAsync();
+
+        log += "Connected to Microsoft Learn MCP. Tools discovered:";
+        await InvokeAsync(StateHasChanged);
+        foreach (var t in mcpTools)
+            log += $"Tool: {t.Title}- {t.Name} <br /> {JsonSerializer.Serialize(t.AdditionalProperties)} <hr />";
+
+        var apiKey = Configuration["OPEN_ROUTER_API_KEY"] ??
+            throw new InvalidOperationException("OPEN_ROUTER_API_KEY is not set in.");
+
+        var openAIClientOptions = new OpenAIClientOptions
+        {
+            Endpoint = new Uri(endpoint),
+        };
+
+        var credential = new ApiKeyCredential(apiKey);
+        var chatClient = new ChatClient(modelName, credential, openAIClientOptions);
+
+        log += "Creating agent with MCP tools... <br />";
+        await InvokeAsync(StateHasChanged);
+        agent = chatClient.CreateAIAgent(instructions: instructions, name: "DocsAgent", tools: [.. mcpTools]);
+
+        var thread = agent.GetNewThread();
+        await foreach (var update in agent.RunStreamingAsync(message, thread))
+        {
+            response += update.ToString();
+            await InvokeAsync(StateHasChanged);
+        }
+
+        isLoading = false;
+    }
+#pragma warning restore MEAI001 // Restore diagnostic after usage
+
+    private string RenderMarkdown(string value)
+    {
+        // Convert Markdown to HTML using Markdig
+        return Markdown.ToHtml(value, new MarkdownPipelineBuilder().UseAdvancedExtensions().Build());
+    }
+}
