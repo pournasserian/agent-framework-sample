@@ -78,3 +78,7 @@ This sample shows how to use a multimodal model to analyze an image. The agent t
 ### Agent 09 - Using Remote MCP Server
 
 This agent demonstrates how to use a remote MCP (Model Context Protocol) server. It connects to the Microsoft Learn MCP server to answer questions about Microsoft technologies, using the tools provided by the server.
+
+### Agent 10 - Agent as Function
+
+This agent demonstrates how to use one agent as a tool for another. It creates a `weatherAgent` and then uses that agent as a function for another agent to respond to user queries in a specified language.
