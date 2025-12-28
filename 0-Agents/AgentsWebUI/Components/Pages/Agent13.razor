@@ -1,0 +1,187 @@
+﻿@page "/agent13"
+@inject IConfiguration Configuration
+
+<PageTitle>Agent 13</PageTitle>
+
+<h1>Agent 13 - Plugins</h1>
+
+<div class="form-group mb-3">
+    <label>Instructions</label>
+    <InputTextArea @bind-Value="instructions" class="form-control"></InputTextArea>
+</div>
+<div class="form-group mb-3">
+    <label>Message</label>
+    <InputTextArea @bind-Value="message" class="form-control"></InputTextArea>
+</div>
+<div class="form-group mb-3">
+    <button type="submit" class="btn btn-primary" disabled="@isLoading" onclick="@OnSubmit">Submit</button>
+    <button type="submit" class="btn btn-primary" disabled="@isLoading" onclick="@OnSubmitStream">Stream</button>
+</div>
+
+@if (!string.IsNullOrEmpty(response))
+{
+    <div>
+        <div class="mb-3 card">
+            <div class="card-body">
+                <h5 class="card-title">Response</h5>
+                <p class="card-text">@response</p>
+            </div>
+        </div>
+    </div>
+
+}
+
+@code {
+    private string message = "Tell me current time and weather in Seattle.";
+    private string instructions = "You are a helpful assistant that helps people find information.";
+    private string modelName = "openai/gpt-4.1-nano";
+    private string endpoint = "https://openrouter.ai/api/v1";
+    private ChatClientAgent agent = default!;
+
+    private string response = string.Empty;
+    private string log = string.Empty;
+    private bool isLoading = false;
+
+    protected override Task OnInitializedAsync()
+    {
+        // Create a service collection to hold the agent plugin and its dependencies.
+        // In a real application, you would typically register these in the application's
+        // dependency injection container during startup.
+        // This is just for demonstration purposes.
+        ServiceCollection services = new();
+        services.AddSingleton<WeatherProvider>();
+        services.AddSingleton<CurrentTimeProvider>();
+        services.AddSingleton<AgentPlugin>(); // The plugin depends on WeatherProvider and CurrentTimeProvider registered above.
+
+        var serviceProvider = services.BuildServiceProvider();
+
+        var apiKey = Configuration["OPEN_ROUTER_API_KEY"] ??
+            throw new InvalidOperationException("OPEN_ROUTER_API_KEY is not set in.");
+
+        var openAIClientOptions = new OpenAIClientOptions
+        {
+            Endpoint = new Uri(endpoint),
+        };
+
+        var credential = new ApiKeyCredential(apiKey);
+        var chatClient = new ChatClient(modelName, credential, openAIClientOptions);
+        agent = chatClient.CreateAIAgent(instructions: instructions, 
+            tools: [.. serviceProvider.GetRequiredService<AgentPlugin>().AsAITools()],
+            services: serviceProvider);
+
+        return base.OnInitializedAsync();
+    }
+
+    private async Task OnSubmit()
+    {
+        response = string.Empty;
+        isLoading = true;
+        var agentResponse = await agent.RunAsync(message);
+        response = agentResponse.ToString();
+        isLoading = false;
+    }
+
+    private async Task OnSubmitStream()
+    {
+        response = string.Empty;
+        isLoading = true;
+        await foreach (var update in agent.RunStreamingAsync(message))
+        {
+            response += update.ToString();
+            await InvokeAsync(StateHasChanged);
+        }
+        isLoading = false;
+    }
+
+
+    /// <summary>
+    /// The agent plugin that provides weather and current time information.
+    /// </summary>
+    /// <param name="weatherProvider">The weather provider to get weather information.</param>
+    internal sealed class AgentPlugin(WeatherProvider weatherProvider)
+    {
+        /// <summary>
+        /// Gets the weather information for the specified location.
+        /// </summary>
+        /// <remarks>
+        /// This method demonstrates how to use the dependency that was injected into the plugin class.
+        /// </remarks>
+        /// <param name="location">The location to get the weather for.</param>
+        /// <returns>The weather information for the specified location.</returns>
+        public string GetWeather(string location)
+        {
+            return weatherProvider.GetWeather(location);
+        }
+
+        /// <summary>
+        /// Gets the current date and time for the specified location.
+        /// </summary>
+        /// <remarks>
+        /// This method demonstrates how to resolve a dependency using the service provider passed to the method.
+        /// </remarks>
+        /// <param name="sp">The service provider to resolve the <see cref="CurrentTimeProvider"/>.</param>
+        /// <param name="location">The location to get the current time for.</param>
+        /// <returns>The current date and time as a <see cref="DateTimeOffset"/>.</returns>
+        public DateTimeOffset GetCurrentTime(IServiceProvider sp, string location)
+        {
+            // Resolve the CurrentTimeProvider from the service provider
+            var currentTimeProvider = sp.GetRequiredService<CurrentTimeProvider>();
+
+            return currentTimeProvider.GetCurrentTime(location);
+        }
+
+        /// <summary>
+        /// Returns the functions provided by this plugin.
+        /// </summary>
+        /// <remarks>
+        /// In real world scenarios, a class may have many methods and only a subset of them may be intended to be exposed as AI functions.
+        /// This method demonstrates how to explicitly specify which methods should be exposed to the AI agent.
+        /// </remarks>
+        /// <returns>The functions provided by this plugin.</returns>
+        public IEnumerable<AITool> AsAITools()
+        {
+            yield return AIFunctionFactory.Create(this.GetWeather);
+            yield return AIFunctionFactory.Create(this.GetCurrentTime);
+        }
+    }
+
+    /// <summary>
+    /// The weather provider that returns weather information.
+    /// </summary>
+    internal sealed class WeatherProvider
+    {
+        /// <summary>
+        /// Gets the weather information for the specified location.
+        /// </summary>
+        /// <remarks>
+        /// The weather information is hardcoded for demonstration purposes.
+        /// In a real application, this could call a weather API to get actual weather data.
+        /// </remarks>
+        /// <param name="location">The location to get the weather for.</param>
+        /// <returns>The weather information for the specified location.</returns>
+        public string GetWeather(string location)
+        {
+            return $"The weather in {location} is cloudy with a high of 15°C.";
+        }
+    }
+
+    /// <summary>
+    /// Provides the current date and time.
+    /// </summary>
+    /// <remarks>
+    /// This class returns the current date and time using the system's clock.
+    /// </remarks>
+    internal sealed class CurrentTimeProvider
+    {
+        /// <summary>
+        /// Gets the current date and time.
+        /// </summary>
+        /// <param name="location">The location to get the current time for (not used in this implementation).</param>
+        /// <returns>The current date and time as a <see cref="DateTimeOffset"/>.</returns>
+        public DateTimeOffset GetCurrentTime(string location)
+        {
+            return DateTimeOffset.Now;
+        }
+    }
+
+}
