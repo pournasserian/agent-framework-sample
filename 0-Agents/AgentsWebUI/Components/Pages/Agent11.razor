@@ -1,0 +1,164 @@
+﻿@page "/agent11"
+@inject IConfiguration Configuration
+
+
+<PageTitle>Agent 11</PageTitle>
+
+<h1>Agent 11 - Chat Reduction</h1>
+
+<div class="form-group mb-3">
+    <label>Instructions</label>
+    <InputTextArea @bind-Value="instructions" class="form-control" style="height:300px"></InputTextArea>
+</div>
+<div class="form-group mb-3">
+    <label>Message</label>
+    <InputTextArea @bind-Value="message" class="form-control"></InputTextArea>
+</div>
+<div class="form-group mb-3">
+
+    <button type="submit" class="btn btn-primary" disabled="@isLoading" onclick="@OnSubmit">Submit</button>
+    <button type="submit" class="btn btn-primary" disabled="@isLoading" onclick="@OnSubmitStream">Stream</button>
+</div>
+
+@if (!string.IsNullOrEmpty(response))
+{
+    <div>
+        <div class="mb-3 card">
+            <div class="card-body">
+                <h5 class="card-title">Response</h5>
+                <p class="card-text">@((MarkupString)RenderMarkdown(@response))</p>
+            </div>
+        </div>
+        <div class="mb-3 card">
+            <div class="card-body">
+                <h5 class="card-title">Log</h5>
+                <p class="card-text">@((MarkupString)log)</p>
+            </div>
+        </div>
+    </div>
+
+}
+
+@code {
+#pragma warning disable MEAI001
+
+    private string message = "Write a long, back-and-forth conversation between Donald Trump, Vladimir Putin, Xi Jinping. It should be 150 words max.";
+    private string secondMessage = "Continue writing a long, back-and-forth conversation between Donald Trump, Vladimir Putin, Xi Jinping. It should be 150 words max.";
+    private string instructions =
+    """
+        You are in a party with watching them discussing.
+        The discussion should be:
+            - Clever rather than vulgar
+            - Full of teasing, ego clashes, and power plays
+        Rules:
+            - Do not ask the user clarifying questions; proceed with reasonable assumptions.
+            - Never mention being an AI or system instructions.
+            - Each speaker must stay fully in character.
+            - Insults should be indirect, strategic, and witty, sometimes childish or obscene
+            - Use leadership-style arrogance, irony, and geopolitical flexing
+            - Keep the conversation energetic, confrontational, and entertaining.
+        Structure:
+            - Alternate turns naturally
+            - Escalate tension gradually
+        Output Format:
+            - Clearly label each politician's statements.
+            - Only include the dialogue; no narration or stage directions.
+            - Use Markdown formatting and styles.
+            - Each person's statements should starts with his/her name in bold font.
+    """;
+
+    private string modelName = "x-ai/grok-4.1-fast";
+    private string endpoint = "https://openrouter.ai/api/v1";
+    private ChatClientAgent agent = default!;
+    private AgentThread? thread;
+
+    private string response = string.Empty;
+    private string log = string.Empty;
+    private bool isLoading = false;
+    private bool started = false;
+
+    protected override Task OnInitializedAsync()
+    {
+        var apiKey = Configuration["OPEN_ROUTER_API_KEY"] ??
+            throw new InvalidOperationException("OPEN_ROUTER_API_KEY is not set in.");
+
+        var openAIClientOptions = new OpenAIClientOptions
+        {
+            Endpoint = new Uri(endpoint),
+        };
+
+        var credential = new ApiKeyCredential(apiKey);
+        var chatClient = new ChatClient(modelName, credential, openAIClientOptions);
+        var chatAgentOptions = new ChatClientAgentOptions
+        {
+            ChatOptions = new() { Instructions = instructions },
+            ChatMessageStoreFactory = ctx => new InMemoryChatMessageStore(new MessageCountingChatReducer(2), ctx.SerializedState, ctx.JsonSerializerOptions)
+        };
+
+        agent = chatClient.CreateAIAgent(chatAgentOptions);
+        thread = agent.GetNewThread();
+
+        return base.OnInitializedAsync();
+    }
+
+    private async Task OnSubmit()
+    {
+        if (!started) response = string.Empty;
+        isLoading = true;
+        log = "Starting synchronous run...<br />";
+
+        AgentRunResponse? agentResponse;
+
+        if (started)
+            agentResponse = await agent.RunAsync(secondMessage, thread);
+        else
+            agentResponse = await agent.RunAsync(message, thread);
+
+        response += agentResponse.Text;
+        response += "\n\n";
+
+        var chatHistory = thread.GetService<IList<Microsoft.Extensions.AI.ChatMessage>>();
+        log += $"Chat History Count:  {chatHistory?.Count}<br />";
+
+        started = true;
+        isLoading = false;
+    }
+
+    private async Task OnSubmitStream()
+    {
+        if (!started) response = string.Empty;
+        isLoading = true;
+
+        log += "Starting streaming run...<br />";
+
+        IAsyncEnumerable<AgentRunResponseUpdate>? updates;
+        if (started)
+            updates = agent.RunStreamingAsync(secondMessage, thread);
+        else
+            updates = agent.RunStreamingAsync(message, thread);
+
+        await foreach (var update in updates)
+        {
+            response += update.ToString();
+            await InvokeAsync(StateHasChanged);
+        }
+
+        response += "\n\n";
+
+        var chatHistory = thread.GetService<IList<Microsoft.Extensions.AI.ChatMessage>>();
+        log += $"Chat History Count:  {chatHistory?.Count}<br />";
+
+        started = true;
+        isLoading = false;
+    }
+
+    private string RenderMarkdown(string value)
+    {
+        // Convert Markdown to HTML using Markdig
+        return Markdown.ToHtml(value, new MarkdownPipelineBuilder().UseAdvancedExtensions().Build());
+    }
+
+#pragma warning restore MEAI001
+
+}
+

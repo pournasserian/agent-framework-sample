@@ -1,0 +1,134 @@
+﻿@page "/agent12"
+@inject IConfiguration Configuration
+
+<PageTitle>Agent 12</PageTitle>
+
+<h1>Agent 12 - Backgroud Responses</h1>
+<h4>This example won't work: it only works with Azure and they don't support other yet.</h4>
+
+<div class="form-group mb-3">
+    <label>Instructions</label>
+    <InputTextArea @bind-Value="instructions" class="form-control"></InputTextArea>
+</div>
+<div class="form-group mb-3">
+    <label>Message</label>
+    <InputTextArea @bind-Value="message" class="form-control"></InputTextArea>
+</div>
+<div class="form-group mb-3">
+    <button type="submit" class="btn btn-primary" disabled="@isLoading" onclick="@OnSubmit">Submit</button>
+    <button type="submit" class="btn btn-primary" disabled="@isLoading" onclick="@OnSubmitStream">Stream</button>
+</div>
+
+@if (!string.IsNullOrEmpty(response))
+{
+    <div>
+        <div class="mb-3 card">
+            <div class="card-body">
+                <h5 class="card-title">Response</h5>
+                <p class="card-text">@((MarkupString)RenderMarkdown(@response))</p>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private string message = "Write a very long novel about otters in space.";
+    private string instructions = "You are a novel writer.";
+    private string modelName = "openai/gpt-4o-mini";
+    private string endpoint = "https://openrouter.ai/api/v1";
+    private ChatClientAgent agent = default!;
+    private AgentThread thread = default!;
+    private AgentRunOptions options = new() { AllowBackgroundResponses = true };
+
+    private string response = string.Empty;
+    private bool isLoading = false;
+
+    protected override Task OnInitializedAsync()
+    {
+        var apiKey = Configuration["OPEN_ROUTER_API_KEY"] ??
+            throw new InvalidOperationException("OPEN_ROUTER_API_KEY is not set in.");
+
+        var openAIClientOptions = new OpenAIClientOptions
+        {
+            Endpoint = new Uri(endpoint),
+        };
+
+        var credential = new ApiKeyCredential(apiKey);
+        var chatClient = new ChatClient(modelName, credential, openAIClientOptions);
+
+        agent = chatClient.CreateAIAgent(instructions: instructions);
+        thread = agent.GetNewThread();
+
+        return base.OnInitializedAsync();
+    }
+
+    private async Task OnSubmit()
+    {
+        isLoading = true;
+
+        var agentResponse = await agent.RunAsync(message, thread , options);
+
+        // Poll until the response is complete.
+        while (agentResponse.ContinuationToken is { } token)
+        {
+            // Continue with the token.
+            options.ContinuationToken = token;
+            agentResponse = await agent.RunAsync(thread, options);
+        }
+
+        response = agentResponse.Text;
+        isLoading = false;
+    }
+
+    private async Task OnSubmitStream()
+    {
+        response = string.Empty;
+        isLoading = true;
+
+        // Reset options and thread for streaming.
+        options = new() { AllowBackgroundResponses = true };
+        thread = agent.GetNewThread();
+
+        AgentRunResponseUpdate? lastReceivedUpdate = null;
+        // Start streaming.
+        await foreach (var update in agent.RunStreamingAsync(message, thread, options))
+        {
+            // Output each update.
+            if (!string.IsNullOrEmpty(update.Text))
+            {
+                response += update.Text;
+                await InvokeAsync(StateHasChanged);                
+            }
+
+            // Track last update.
+            lastReceivedUpdate = update;
+
+            // Simulate connection loss after first piece of content received.
+            // if (update.Text.Length > 0)
+            // {
+            //     break;
+            // }
+        }
+
+        // Resume from interruption point.
+        options.ContinuationToken = lastReceivedUpdate?.ContinuationToken;
+
+        await foreach (var update in agent.RunStreamingAsync(thread, options))
+        {
+            // Output each update.
+            if (!string.IsNullOrEmpty(update.Text))
+            {
+                response += update.Text;
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+
+        isLoading = false;
+    }
+
+    private string RenderMarkdown(string value)
+    {
+        // Convert Markdown to HTML using Markdig
+        return Markdown.ToHtml(value, new MarkdownPipelineBuilder().UseAdvancedExtensions().Build());
+    }
+}
