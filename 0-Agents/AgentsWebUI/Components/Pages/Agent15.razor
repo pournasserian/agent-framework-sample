@@ -1,0 +1,104 @@
+﻿@page "/agent15"
+@inject IConfiguration Configuration
+
+<PageTitle>Agent 15</PageTitle>
+
+<h1>Agent 15 - Declartive Agent</h1>
+
+<div class="form-group mb-3">
+    <label>Message</label>
+    <InputTextArea @bind-Value="message" class="form-control"></InputTextArea>
+</div>
+<div class="form-group mb-3">
+    <button type="submit" class="btn btn-primary" disabled="@isLoading" onclick="@OnSubmit">Submit</button>
+    <button type="submit" class="btn btn-primary" disabled="@isLoading" onclick="@OnSubmitStream">Stream</button>
+</div>
+
+@if (!string.IsNullOrEmpty(response))
+{
+    <div>
+        <div class="mb-3 card">
+            <div class="card-body">
+                <h5 class="card-title">Response</h5>
+                <p class="card-text pre"><code>@response</code></p>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private string message = "Tell me a long joke about a pirate. It should be at least two pargraphs.";
+    // Define the agent using a YAML definition.
+    private string text =
+    """
+    kind: Prompt
+    name: Assistant
+    description: Helpful assistant
+    instructions: You are a helpful assistant. You answer questions in the language specified by the user. You return your answers in a JSON format.
+    model:
+        options:
+            temperature: 0.9
+            topP: 0.95
+    outputSchema:
+        properties:
+            language:
+                type: string
+                required: true
+                description: The language of the answer.
+            answer:
+                type: string
+                required: true
+                description: The answer text.
+    """;
+
+    private string modelName = "openai/gpt-4.1-nano";
+    private string endpoint = "https://openrouter.ai/api/v1";
+    private ChatClientPromptAgentFactory agentFactory = default!;
+
+    private string response = string.Empty;
+    private bool isLoading = false;
+
+    protected override Task OnInitializedAsync()
+    {
+        var apiKey = Configuration["OPEN_ROUTER_API_KEY"] ??
+            throw new InvalidOperationException("OPEN_ROUTER_API_KEY is not set in.");
+
+        var openAIClientOptions = new OpenAIClientOptions
+        {
+            Endpoint = new Uri(endpoint),
+        };
+
+        var credential = new ApiKeyCredential(apiKey);
+        var chatClient = new ChatClient(modelName, credential, openAIClientOptions);
+
+        agentFactory = new ChatClientPromptAgentFactory(chatClient.AsIChatClient());
+        return base.OnInitializedAsync();
+    }
+
+    private async Task OnSubmit()
+    {
+        response = "Processing...";
+        isLoading = true;
+
+        var agent = await agentFactory.CreateFromYamlAsync(text);
+        var agentResponse = await agent.RunAsync(message);
+
+        response = agentResponse.ToString();
+
+        isLoading = false;
+    }
+
+    private async Task OnSubmitStream()
+    {
+        response = string.Empty;
+        isLoading = true;
+        var agent = await agentFactory.CreateFromYamlAsync(text);
+        await foreach (var update in agent.RunStreamingAsync(message))
+        {
+            response += update.ToString();
+            await InvokeAsync(StateHasChanged);
+        }
+
+        isLoading = false;
+    }
+}

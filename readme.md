@@ -83,3 +83,6 @@ This agent showcases the use of plugins to integrate external services (e.g., we
 
 ### Agent 14 - Middleware
 This agent demonstrates the use of middleware for logging, function overriding, and content redaction to enforce safety and custom behaviors.
+
+### Agent 15 - Declartive Agent
+This agent is configured using a YAML definition that includes an output schema. It defines a declarative agent that returns its response in a JSON format.

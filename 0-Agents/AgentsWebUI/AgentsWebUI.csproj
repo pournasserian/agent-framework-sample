@@ -9,6 +9,7 @@
 
   <ItemGroup>
     <PackageReference Include="Markdig" Version="0.44.0" />
+    <PackageReference Include="Microsoft.Agents.AI.Declarative" Version="1.0.0-preview.251219.1" />
     <PackageReference Include="Microsoft.Agents.AI.OpenAI" Version="1.0.0-preview.251219.1" />
     <PackageReference Include="Microsoft.Extensions.AI.OpenAI" Version="10.1.1-preview.1.25612.2" />
     <PackageReference Include="Microsoft.SemanticKernel.Connectors.InMemory" Version="1.68.0-preview" />
