@@ -9,7 +9,6 @@
             <p class="lead">This project demonstrates the usage of the Microsoft Agent Framework in a Blazor Web Application. It includes several sample agents, each showcasing a different feature of the framework.</p>
         </div>
     </div>
-
     <div class="row mt-4">
         <div class="col-md-4 mb-4">
             <div class="card h-100">
@@ -37,7 +36,7 @@
             <div class="card h-100">
                 <div class="card-body">
                     <h5 class="card-title">Agent 03 - Agent with Function/Tool</h5>
-                    <p class="card-text">This agent demonstrates how to provide functions (tools) to an agent. In this example, the agent uses `Add` and `Multiply` functions to solve a math problem that it wouldn't be able to solve on its own.</p>
+                    <p class="card-text">This agent demonstrates how to provide functions (tools) to an agent. In this example, the agent uses <code>Add</code> and <code>Multiply</code> functions to solve a math problem that it wouldn't be able to solve on its own.</p>
                 </div>
                 <div class="card-footer">
                     <a href="/agent03" class="btn btn-primary">Go to Agent 3</a>
@@ -48,7 +47,7 @@
             <div class="card h-100">
                 <div class="card-body">
                     <h5 class="card-title">Agent 04 - Functions with User Approval</h5>
-                    <p class="card-text">This agent builds upon the previous example by adding a user approval step before a function is executed. The agent asks for confirmation from the user before calling the `Add` or `Multiply` functions.</p>
+                    <p class="card-text">This agent builds upon the previous example by adding a user approval step before a function is executed. The agent asks for confirmation from the user before calling the <code>Add</code> or <code>Multiply</code> functions.</p>
                 </div>
                 <div class="card-footer">
                     <a href="/agent04" class="btn btn-primary">Go to Agent 4</a>
@@ -59,7 +58,7 @@
             <div class="card h-100">
                 <div class="card-body">
                     <h5 class="card-title">Agent 05 - Structured Output</h5>
-                    <p class="card-text">This sample shows how to get structured data (JSON) from an unstructured text input. The agent extracts information about a person into a `PersonInfo` object.</p>
+                    <p class="card-text">This sample shows how to get structured data (JSON) from an unstructured text input. The agent extracts information about a person into a <code>PersonInfo</code> object.</p>
                 </div>
                 <div class="card-footer">
                     <a href="/agent05" class="btn btn-primary">Go to Agent 5</a>
@@ -81,7 +80,7 @@
             <div class="card h-100">
                 <div class="card-body">
                     <h5 class="card-title">Agent 07 - Custom Thread Storage</h5>
-                    <p class="card-text">This agent demonstrates how to use a custom `VectorChatMessageStore` to persist conversation history in memory. This allows for more flexible and scalable storage of conversation threads.</p>
+                    <p class="card-text">This agent demonstrates how to use a custom <code>VectorChatMessageStore</code> to persist conversation history in memory. This allows for more flexible and scalable storage of conversation threads.</p>
                 </div>
                 <div class="card-footer">
                     <a href="/agent07" class="btn btn-primary">Go to Agent 7</a>
@@ -114,10 +113,54 @@
             <div class="card h-100">
                 <div class="card-body">
                     <h5 class="card-title">Agent 10 - Agent as Function</h5>
-                    <p class="card-text">This agent demonstrates how to use one agent as a tool for another. It creates a `weatherAgent` and then uses that agent as a function for another agent to respond to user queries in a specified language.</p>
+                    <p class="card-text">This agent demonstrates how to use one agent as a tool for another. It creates a <code>weatherAgent</code> and then uses that agent as a function for another agent to respond to user queries in a specified language.</p>
                 </div>
                 <div class="card-footer">
                     <a href="/agent10" class="btn btn-primary">Go to Agent 10</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Agent 11 - Chat Reduction</h5>
+                    <p class="card-text">This agent demonstrates chat reduction techniques by using message store reducers to limit the conversation context to essential exchanges.</p>
+                </div>
+                <div class="card-footer">
+                    <a href="/agent11" class="btn btn-primary">Go to Agent 11</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Agent 12 - Backgroud Responses</h5>
+                    <p class="card-text">This agent illustrates handling of background responses, enabling long processing times with response resumption and continuous streaming.</p>
+                </div>
+                <div class="card-footer">
+                    <a href="/agent12" class="btn btn-primary">Go to Agent 12</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Agent 13 - Plugins</h5>
+                    <p class="card-text">This agent showcases the use of plugins to integrate external services (e.g., weather and current time providers) via dependency injection, enhancing the agent’s functionality.</p>
+                </div>
+                <div class="card-footer">
+                    <a href="/agent13" class="btn btn-primary">Go to Agent 13</a>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Agent 14 - Middleware</h5>
+                    <p class="card-text">This agent demonstrates the use of middleware for logging, function overriding, and content redaction to enforce safety and custom behaviors.</p>
+                </div>
+                <div class="card-footer">
+                    <a href="/agent14" class="btn btn-primary">Go to Agent 14</a>
                 </div>
             </div>
         </div>
