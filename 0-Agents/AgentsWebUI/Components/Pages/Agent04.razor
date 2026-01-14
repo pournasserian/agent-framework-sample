@@ -6,6 +6,8 @@
 
 <h1>Agent 0 - Functions with User Approval</h1>
 
+<p>Features user approval for function calls using ApprovalRequiredAIFunction, prompting confirmations via JavaScript dialog before executing math operations.</p>
+
 <div class="form-group mb-3">
     <label>Instructions</label>
     <InputTextArea @bind-Value="instructions" class="form-control"></InputTextArea>
@@ -67,9 +69,9 @@
         var chatClient = new ChatClient(modelName, credential, openAIClientOptions);
 
 
-        agent = chatClient.CreateAIAgent(instructions: instructions, tools: 
+        agent = chatClient.CreateAIAgent(instructions: instructions, tools:
             [
-                new ApprovalRequiredAIFunction(AIFunctionFactory.Create(Add)), 
+                new ApprovalRequiredAIFunction(AIFunctionFactory.Create(Add)),
                 new ApprovalRequiredAIFunction(AIFunctionFactory.Create(Multiply))
             ]);
 
@@ -169,4 +171,3 @@
 
 #pragma warning restore MEAI001
 }
-

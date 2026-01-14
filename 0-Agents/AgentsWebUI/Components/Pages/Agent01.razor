@@ -5,6 +5,8 @@
 
 <h1>Agent 01 - Basic Agent</h1>
 
+<p>Demonstrates basic AI agent setup allowing users to configure instructions and messages, with Submit and Stream buttons for synchronous and real-time responses using OpenAI GPT-4.1-nano via OpenRouter.</p>
+
 <div class="form-group mb-3">
     <label>Instructions</label>
     <InputTextArea @bind-Value="instructions" class="form-control"></InputTextArea>
@@ -60,7 +62,7 @@
     private async Task OnSubmit()
     {
         response = "Processing...";
-        isLoading = true;        
+        isLoading = true;
 
         var agentResponse = await agent.RunAsync(message);
 
