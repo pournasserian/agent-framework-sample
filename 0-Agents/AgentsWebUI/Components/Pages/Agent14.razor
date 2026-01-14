@@ -103,7 +103,7 @@
         {
             response += "<b>Prompt:</b> " + line + "<br />";
             log += $"<b>Answer for prompt: {line} </b><br />";
-            await foreach (var update in agent.RunStreamingAsync(message, thread))
+            await foreach (var update in agent.RunStreamingAsync(line, thread))
             {
                 response += update.Text;
                 await InvokeAsync(StateHasChanged);
