@@ -1,0 +1,125 @@
+﻿@page "/agent16"
+@using OpenAI.Responses
+@inject IConfiguration Configuration
+
+<PageTitle>Agent 16</PageTitle>
+
+<h1>Agent 16 - Reasoning</h1>
+
+<p>Demonstrates advanced reasoning capabilities using OpenAI's o4-mini model through OpenRouter, allowing users to see both the final response and the step-by-step reasoning process.</p>
+
+<div class="form-group mb-3">
+    <label>Message</label>
+    <InputTextArea @bind-Value="message" class="form-control"></InputTextArea>
+</div>
+<div class="form-group mb-3">
+    <button type="submit" class="btn btn-primary" disabled="@isLoading" onclick="@OnSubmit">Submit</button>
+    <button type="submit" class="btn btn-primary" disabled="@isLoading" onclick="@OnSubmitStream">Stream</button>
+</div>
+
+@if (!string.IsNullOrEmpty(response))
+{
+    <div>
+        <div class="mb-3 card">
+            <div class="card-body">
+                <h5 class="card-title">Response</h5>
+                <p class="card-text">@response</p>
+            </div>
+        </div>
+        <div class="mb-3 card">
+            <div class="card-body">
+                <h5 class="card-title">Reasoning</h5>
+                <p class="card-text">@((MarkupString)reasoning)</p>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+#pragma warning disable OPENAI001
+
+    private string message = "Explain the theory of relativity in simple terms.";
+    private string modelName = "openai/o4-mini";
+    private string endpoint = "https://openrouter.ai/api/v1";
+    private ChatClientAgent agent = default!;
+
+    private string response = string.Empty;
+    private string reasoning = string.Empty;
+    private bool isLoading = false;
+
+    protected override Task OnInitializedAsync()
+    {
+        var apiKey = Configuration["OPEN_ROUTER_API_KEY"] ??
+            throw new InvalidOperationException("OPEN_ROUTER_API_KEY is not set in.");
+
+        var openAIClientOptions = new OpenAIClientOptions
+        {
+            Endpoint = new Uri(endpoint),
+        };
+
+        var credential = new ApiKeyCredential(apiKey);
+
+        var chatClient = new OpenAIClient(credential, openAIClientOptions)
+            .GetResponsesClient(modelName)
+            .AsIChatClient().AsBuilder()
+            .ConfigureOptions(o =>
+                {
+                    // o.Instructions = instructions;
+                    o.RawRepresentationFactory = _ => new CreateResponseOptions()
+                    {
+                        ReasoningOptions = new()
+                        {
+                            ReasoningEffortLevel = ResponseReasoningEffortLevel.Medium,
+                            // Verbosity requires OpenAI verified Organization
+                            ReasoningSummaryVerbosity = ResponseReasoningSummaryVerbosity.Detailed
+                        }
+                    };
+                }).Build();
+
+        agent = new ChatClientAgent(chatClient);
+
+        return base.OnInitializedAsync();
+    }
+
+    private async Task OnSubmit()
+    {
+        response = string.Empty;
+        reasoning = string.Empty;
+        isLoading = true;
+
+        var agentResponse = await agent.RunAsync(message);
+
+        response = agentResponse.Text;
+
+        reasoning = $"Input: {agentResponse.Usage?.InputTokenCount}, Output: {agentResponse.Usage?.OutputTokenCount}, {string.Join(", ", agentResponse.Usage?.AdditionalCounts ?? [])}";
+
+        isLoading = false;
+    }
+
+    private async Task OnSubmitStream()
+    {
+        response = string.Empty;
+        reasoning = string.Empty;
+        isLoading = true;
+
+        await foreach (var update in agent.RunStreamingAsync(message))
+        {
+            foreach (var item in update.Contents)
+            {
+                if (item is TextReasoningContent reasoningContent)
+                {
+                    reasoning += reasoningContent.Text;
+                }
+                else if (item is TextContent textContent)
+                {
+                    response += textContent.Text;
+                }
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+
+        isLoading = false;
+    }
+
+#pragma warning restore OPENAI001
+}

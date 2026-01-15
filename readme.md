@@ -86,3 +86,6 @@ This agent demonstrates the use of middleware for logging, function overriding, 
 
 ### Agent 15 - Declartive Agent
 This agent is configured using a YAML definition that includes an output schema. It defines a declarative agent that returns its response in a JSON format.
+
+### Agent 16 - Reasoning
+This agent demonstrates the use of advanced reasoning capabilities in AI models. It uses OpenAI's o4-mini model to provide both a response and detailed reasoning content, showcasing how the agent can explain its thought process through sequential reasoning steps and displaying results via both synchronous and streaming modes.
