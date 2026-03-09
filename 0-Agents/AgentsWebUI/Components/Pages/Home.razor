@@ -3,188 +3,351 @@
 <PageTitle>Home</PageTitle>
 
 <div class="container">
-    <div class="row">
-        <div class="col-12">
-            <h1 class="mt-5">Microsoft Agent Framework Samples</h1>
-            <p class="lead">This project demonstrates the usage of the Microsoft Agent Framework in a Blazor Web Application. It includes several sample agents, each showcasing a different feature of the framework.</p>
+
+    <!-- Hero Banner -->
+    <div class="hero-banner rounded-3 mb-5 px-4 py-5 text-white"
+         style="background: linear-gradient(135deg, #052767 0%, #1b6ec2 60%, #3a0647 100%);">
+        <div class="d-flex align-items-center gap-3 mb-2">
+            <span style="font-size:2.5rem;" aria-hidden="true">🤖</span>
+            <h1 class="display-5 fw-bold mb-0">Microsoft Agent Framework Samples</h1>
+        </div>
+        <p class="lead mb-4" style="max-width:680px; opacity:.9;">
+            Explore 16 interactive samples that demonstrate the capabilities of the
+            <strong>Microsoft Agent Framework</strong> in a Blazor Web Application on .NET 10.
+        </p>
+        <div class="d-flex flex-wrap gap-2">
+            <span class="badge rounded-pill px-3 py-2" style="background:rgba(255,255,255,.2);font-size:.85rem;">.NET 10</span>
+            <span class="badge rounded-pill px-3 py-2" style="background:rgba(255,255,255,.2);font-size:.85rem;">Blazor</span>
+            <span class="badge rounded-pill px-3 py-2" style="background:rgba(255,255,255,.2);font-size:.85rem;">OpenAI</span>
+            <span class="badge rounded-pill px-3 py-2" style="background:rgba(255,255,255,.2);font-size:.85rem;">MCP</span>
+            <span class="badge rounded-pill px-3 py-2" style="background:rgba(255,255,255,.2);font-size:.85rem;">Semantic Kernel</span>
         </div>
     </div>
-    <div class="row mt-4">
-        <div class="col-md-4 mb-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Agent 01 - Basic Agent</h5>
-                    <p class="card-text">This agent demonstrates the basic functionality of creating and running an agent. It takes instructions and a message as input and returns a response from the AI model. It shows both a simple request/response and a streaming response.</p>
+
+    <!-- Category 1: Basics -->
+    <section class="agent-category cat-basics mb-5">
+        <div class="category-header d-flex align-items-center gap-2 mb-3 pb-2">
+            <span class="category-icon" aria-hidden="true">🚀</span>
+            <h2 class="h4 mb-0 fw-semibold">Basics</h2>
+            <span class="badge cat-count-badge ms-2">3 samples</span>
+        </div>
+        <div class="row g-3">
+            <div class="col-md-4 col-sm-6">
+                <div class="card h-100 agent-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title mb-0">Basic Agent</h5>
+                            <span class="badge agent-badge">Basic</span>
+                        </div>
+                        <p class="card-text text-muted small">
+                            Demonstrates the basic functionality of creating and running an agent.
+                            Shows both a simple request/response and a streaming response.
+                        </p>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pt-0">
+                        <a href="/agent01" class="btn btn-primary btn-sm w-100">Explore Sample →</a>
+                    </div>
                 </div>
-                <div class="card-footer">
-                    <a href="/agent01" class="btn btn-primary">Go to Agent 1</a>
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <div class="card h-100 agent-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title mb-0">Agent with Thread</h5>
+                            <span class="badge agent-badge">Thread</span>
+                        </div>
+                        <p class="card-text text-muted small">
+                            Showcases how to use threads for multi-turn conversations.
+                            The agent remembers the context of previous messages in the same thread.
+                        </p>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pt-0">
+                        <a href="/agent02" class="btn btn-primary btn-sm w-100">Explore Sample →</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <div class="card h-100 agent-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title mb-0">Structured Output</h5>
+                            <span class="badge agent-badge">Structured</span>
+                        </div>
+                        <p class="card-text text-muted small">
+                            Shows how to extract structured data (JSON) from unstructured text.
+                            The agent populates a <code>PersonInfo</code> object from natural language.
+                        </p>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pt-0">
+                        <a href="/agent05" class="btn btn-primary btn-sm w-100">Explore Sample →</a>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4 mb-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Agent 02 - Agent with Thread</h5>
-                    <p class="card-text">This sample showcases how to use threads to have a multi-turn conversation with an agent. The agent remembers the context of the previous messages in the same thread.</p>
+    </section>
+
+    <!-- Category 2: Functions & Tools -->
+    <section class="agent-category cat-functions mb-5">
+        <div class="category-header d-flex align-items-center gap-2 mb-3 pb-2">
+            <span class="category-icon" aria-hidden="true">🔧</span>
+            <h2 class="h4 mb-0 fw-semibold">Functions &amp; Tools</h2>
+            <span class="badge cat-count-badge ms-2">4 samples</span>
+        </div>
+        <div class="row g-3">
+            <div class="col-md-4 col-sm-6">
+                <div class="card h-100 agent-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title mb-0">Agent with Function/Tool</h5>
+                            <span class="badge agent-badge">Function</span>
+                        </div>
+                        <p class="card-text text-muted small">
+                            Demonstrates how to provide functions (tools) to an agent.
+                            Uses <code>Add</code> and <code>Multiply</code> functions to solve a math problem the model cannot reason numerically.
+                        </p>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pt-0">
+                        <a href="/agent03" class="btn btn-success btn-sm w-100">Explore Sample →</a>
+                    </div>
                 </div>
-                <div class="card-footer">
-                    <a href="/agent02" class="btn btn-primary">Go to Agent 2</a>
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <div class="card h-100 agent-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title mb-0">Functions with User Approval</h5>
+                            <span class="badge agent-badge">Approval</span>
+                        </div>
+                        <p class="card-text text-muted small">
+                            Adds a user approval step before any function is executed.
+                            The agent asks for confirmation before calling <code>Add</code> or <code>Multiply</code>.
+                        </p>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pt-0">
+                        <a href="/agent04" class="btn btn-success btn-sm w-100">Explore Sample →</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <div class="card h-100 agent-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title mb-0">Agent as Function</h5>
+                            <span class="badge agent-badge">Agent Tool</span>
+                        </div>
+                        <p class="card-text text-muted small">
+                            Demonstrates using one agent as a callable tool for another.
+                            A <code>weatherAgent</code> serves as a function that a parent agent invokes for language-specific responses.
+                        </p>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pt-0">
+                        <a href="/agent10" class="btn btn-success btn-sm w-100">Explore Sample →</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <div class="card h-100 agent-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title mb-0">Plugins</h5>
+                            <span class="badge agent-badge">Plugins</span>
+                        </div>
+                        <p class="card-text text-muted small">
+                            Showcases plugin integration to add external services (weather, current time)
+                            via dependency injection.
+                        </p>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pt-0">
+                        <a href="/agent13" class="btn btn-success btn-sm w-100">Explore Sample →</a>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4 mb-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Agent 03 - Agent with Function/Tool</h5>
-                    <p class="card-text">This agent demonstrates how to provide functions (tools) to an agent. In this example, the agent uses <code>Add</code> and <code>Multiply</code> functions to solve a math problem that it wouldn't be able to solve on its own.</p>
+    </section>
+
+    <!-- Category 3: Storage & Persistence -->
+    <section class="agent-category cat-storage mb-5">
+        <div class="category-header d-flex align-items-center gap-2 mb-3 pb-2">
+            <span class="category-icon" aria-hidden="true">💾</span>
+            <h2 class="h4 mb-0 fw-semibold">Storage &amp; Persistence</h2>
+            <span class="badge cat-count-badge ms-2">3 samples</span>
+        </div>
+        <div class="row g-3">
+            <div class="col-md-4 col-sm-6">
+                <div class="card h-100 agent-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title mb-0">Persisted Conversation</h5>
+                            <span class="badge agent-badge">Persistence</span>
+                        </div>
+                        <p class="card-text text-muted small">
+                            Demonstrates serializing a conversation thread to disk and resuming it in a later interaction.
+                        </p>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pt-0">
+                        <a href="/agent06" class="btn btn-info btn-sm w-100 text-dark">Explore Sample →</a>
+                    </div>
                 </div>
-                <div class="card-footer">
-                    <a href="/agent03" class="btn btn-primary">Go to Agent 3</a>
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <div class="card h-100 agent-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title mb-0">Custom Thread Storage</h5>
+                            <span class="badge agent-badge">Vector Store</span>
+                        </div>
+                        <p class="card-text text-muted small">
+                            Uses a custom <code>VectorChatMessageStore</code> to persist conversation history in memory,
+                            enabling scalable and searchable thread storage.
+                        </p>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pt-0">
+                        <a href="/agent07" class="btn btn-info btn-sm w-100 text-dark">Explore Sample →</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <div class="card h-100 agent-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title mb-0">Chat Reduction</h5>
+                            <span class="badge agent-badge">Reduction</span>
+                        </div>
+                        <p class="card-text text-muted small">
+                            Demonstrates chat reduction techniques using message store reducers
+                            to limit conversation context to essential exchanges.
+                        </p>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pt-0">
+                        <a href="/agent11" class="btn btn-info btn-sm w-100 text-dark">Explore Sample →</a>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4 mb-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Agent 04 - Functions with User Approval</h5>
-                    <p class="card-text">This agent builds upon the previous example by adding a user approval step before a function is executed. The agent asks for confirmation from the user before calling the <code>Add</code> or <code>Multiply</code> functions.</p>
+    </section>
+
+    <!-- Category 4: Multimodal & External Services -->
+    <section class="agent-category cat-multimodal mb-5">
+        <div class="category-header d-flex align-items-center gap-2 mb-3 pb-2">
+            <span class="category-icon" aria-hidden="true">🌐</span>
+            <h2 class="h4 mb-0 fw-semibold">Multimodal &amp; External Services</h2>
+            <span class="badge cat-count-badge ms-2">3 samples</span>
+        </div>
+        <div class="row g-3">
+            <div class="col-md-4 col-sm-6">
+                <div class="card h-100 agent-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title mb-0">Agent Using Image</h5>
+                            <span class="badge agent-badge">Multimodal</span>
+                        </div>
+                        <p class="card-text text-muted small">
+                            Demonstrates how a multimodal model analyzes an image.
+                            Accepts an image URL and text prompt, returns a description of the image content.
+                        </p>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pt-0">
+                        <a href="/agent08" class="btn btn-sm w-100 btn-purple">Explore Sample →</a>
+                    </div>
                 </div>
-                <div class="card-footer">
-                    <a href="/agent04" class="btn btn-primary">Go to Agent 4</a>
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <div class="card h-100 agent-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title mb-0">Using Remote MCP Server</h5>
+                            <span class="badge agent-badge">MCP</span>
+                        </div>
+                        <p class="card-text text-muted small">
+                            Connects to the Microsoft Learn MCP server to answer questions about
+                            Microsoft technologies using the server's tools.
+                        </p>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pt-0">
+                        <a href="/agent09" class="btn btn-sm w-100 btn-purple">Explore Sample →</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <div class="card h-100 agent-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title mb-0">Background Responses</h5>
+                            <span class="badge agent-badge">Async</span>
+                        </div>
+                        <p class="card-text text-muted small">
+                            Illustrates asynchronous background responses, enabling long processing times
+                            with response resumption and continuous streaming.
+                        </p>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pt-0">
+                        <a href="/agent12" class="btn btn-sm w-100 btn-purple">Explore Sample →</a>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4 mb-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Agent 05 - Structured Output</h5>
-                    <p class="card-text">This sample shows how to get structured data (JSON) from an unstructured text input. The agent extracts information about a person into a <code>PersonInfo</code> object.</p>
+    </section>
+
+    <!-- Category 5: Advanced Features -->
+    <section class="agent-category cat-advanced mb-5">
+        <div class="category-header d-flex align-items-center gap-2 mb-3 pb-2">
+            <span class="category-icon" aria-hidden="true">⚡</span>
+            <h2 class="h4 mb-0 fw-semibold">Advanced Features</h2>
+            <span class="badge cat-count-badge ms-2">3 samples</span>
+        </div>
+        <div class="row g-3">
+            <div class="col-md-4 col-sm-6">
+                <div class="card h-100 agent-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title mb-0">Middleware</h5>
+                            <span class="badge agent-badge">Middleware</span>
+                        </div>
+                        <p class="card-text text-muted small">
+                            Demonstrates middleware for logging, function overriding, and content redaction
+                            to enforce safety and custom pipeline behaviors.
+                        </p>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pt-0">
+                        <a href="/agent14" class="btn btn-warning btn-sm w-100 text-dark">Explore Sample →</a>
+                    </div>
                 </div>
-                <div class="card-footer">
-                    <a href="/agent05" class="btn btn-primary">Go to Agent 5</a>
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <div class="card h-100 agent-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title mb-0">Declarative Agent</h5>
+                            <span class="badge agent-badge">Declarative</span>
+                        </div>
+                        <p class="card-text text-muted small">
+                            Configures an agent via a YAML definition with an output schema,
+                            returning responses in structured JSON format.
+                        </p>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pt-0">
+                        <a href="/agent15" class="btn btn-warning btn-sm w-100 text-dark">Explore Sample →</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 col-sm-6">
+                <div class="card h-100 agent-card">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h5 class="card-title mb-0">Reasoning</h5>
+                            <span class="badge agent-badge">Reasoning</span>
+                        </div>
+                        <p class="card-text text-muted small">
+                            Demonstrates advanced reasoning with OpenAI's <code>o4-mini</code> model,
+                            exposing both the final answer and step-by-step reasoning.
+                        </p>
+                    </div>
+                    <div class="card-footer bg-transparent border-0 pt-0">
+                        <a href="/agent16" class="btn btn-warning btn-sm w-100 text-dark">Explore Sample →</a>
+                    </div>
                 </div>
             </div>
         </div>
-        <div class="col-md-4 mb-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Agent 06 - Persisted Conversation</h5>
-                    <p class="card-text">This agent demonstrates how to persist and resume a conversation. The conversation thread is serialized to a file and then deserialized to continue the conversation in a subsequent interaction.</p>
-                </div>
-                <div class="card-footer">
-                    <a href="/agent06" class="btn btn-primary">Go to Agent 6</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Agent 07 - Custom Thread Storage</h5>
-                    <p class="card-text">This agent demonstrates how to use a custom <code>VectorChatMessageStore</code> to persist conversation history in memory. This allows for more flexible and scalable storage of conversation threads.</p>
-                </div>
-                <div class="card-footer">
-                    <a href="/agent07" class="btn btn-primary">Go to Agent 7</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Agent 08 - Agent Using Image</h5>
-                    <p class="card-text">This sample shows how to use a multimodal model to analyze an image. The agent takes an image URL and a text prompt as input and returns a description of the image content.</p>
-                </div>
-                <div class="card-footer">
-                    <a href="/agent08" class="btn btn-primary">Go to Agent 8</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Agent 09 - Using Remote MCP Server</h5>
-                    <p class="card-text">This agent demonstrates how to use a remote MCP (Model Context Protocol) server. It connects to the Microsoft Learn MCP server to answer questions about Microsoft technologies, using the tools provided by the server.</p>
-                </div>
-                <div class="card-footer">
-                    <a href="/agent09" class="btn btn-primary">Go to Agent 9</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Agent 10 - Agent as Function</h5>
-                    <p class="card-text">This agent demonstrates how to use one agent as a tool for another. It creates a <code>weatherAgent</code> and then uses that agent as a function for another agent to respond to user queries in a specified language.</p>
-                </div>
-                <div class="card-footer">
-                    <a href="/agent10" class="btn btn-primary">Go to Agent 10</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Agent 11 - Chat Reduction</h5>
-                    <p class="card-text">This agent demonstrates chat reduction techniques by using message store reducers to limit the conversation context to essential exchanges.</p>
-                </div>
-                <div class="card-footer">
-                    <a href="/agent11" class="btn btn-primary">Go to Agent 11</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Agent 12 - Backgroud Responses</h5>
-                    <p class="card-text">This agent illustrates handling of background responses, enabling long processing times with response resumption and continuous streaming.</p>
-                </div>
-                <div class="card-footer">
-                    <a href="/agent12" class="btn btn-primary">Go to Agent 12</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Agent 13 - Plugins</h5>
-                    <p class="card-text">This agent showcases the use of plugins to integrate external services (e.g., weather and current time providers) via dependency injection, enhancing the agent’s functionality.</p>
-                </div>
-                <div class="card-footer">
-                    <a href="/agent13" class="btn btn-primary">Go to Agent 13</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Agent 14 - Middleware</h5>
-                    <p class="card-text">This agent demonstrates the use of middleware for logging, function overriding, and content redaction to enforce safety and custom behaviors.</p>
-                </div>
-                <div class="card-footer">
-                    <a href="/agent14" class="btn btn-primary">Go to Agent 14</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Agent 15 - Declartive Agent</h5>
-                    <p class="card-text">This agent is configured using a YAML definition that includes an output schema. It defines a declarative agent that returns its response in a JSON format.</p>
-                </div>
-                <div class="card-footer">
-                    <a href="/agent15" class="btn btn-primary">Go to Agent 15</a>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="card h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Agent 16 - Reasoning</h5>
-                    <p class="card-text">This agent demonstrates advanced reasoning capabilities using OpenAI's o4-mini model, allowing users to see both the final response and the step-by-step reasoning process.</p>
-                </div>
-                <div class="card-footer">
-                    <a href="/agent16" class="btn btn-primary">Go to Agent 16</a>
-                </div>
-            </div>
-        </div>
-    </div>
+    </section>
+
 </div>

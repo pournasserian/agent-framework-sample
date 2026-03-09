@@ -1,0 +1,72 @@
+/* ──────────────────────────────────────────
+   Agent card base
+────────────────────────────────────────── */
+.agent-card {
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+    border-top-width: 4px;
+    border-top-style: solid;
+}
+
+.agent-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* ──────────────────────────────────────────
+   Category colour themes
+   Applied via a wrapper class on the section
+────────────────────────────────────────── */
+
+/* Basics — Bootstrap primary blue */
+.cat-basics .agent-card   { border-top-color: #0d6efd; }
+.cat-basics .agent-badge  { background-color: #0d6efd; color: #fff; }
+
+/* Functions & Tools — Bootstrap success green */
+.cat-functions .agent-card  { border-top-color: #198754; }
+.cat-functions .agent-badge { background-color: #198754; color: #fff; }
+
+/* Storage & Persistence — Bootstrap info teal */
+.cat-storage .agent-card  { border-top-color: #087990; }
+.cat-storage .agent-badge { background-color: #087990; color: #fff; }
+
+/* Multimodal & External — Bootstrap purple */
+.cat-multimodal .agent-card  { border-top-color: #6f42c1; }
+.cat-multimodal .agent-badge { background-color: #6f42c1; color: #fff; }
+
+/* Advanced Features — Bootstrap orange */
+.cat-advanced .agent-card  { border-top-color: #fd7e14; }
+.cat-advanced .agent-badge { background-color: #fd7e14; color: #fff; }
+
+/* ──────────────────────────────────────────
+   Category section header underline
+────────────────────────────────────────── */
+.cat-basics    .category-header  { border-bottom: 2px solid #0d6efd; }
+.cat-functions .category-header  { border-bottom: 2px solid #198754; }
+.cat-storage   .category-header  { border-bottom: 2px solid #087990; }
+.cat-multimodal .category-header { border-bottom: 2px solid #6f42c1; }
+.cat-advanced   .category-header { border-bottom: 2px solid #fd7e14; }
+
+/* ──────────────────────────────────────────
+   Category badge count pill
+────────────────────────────────────────── */
+.cat-basics    .cat-count-badge { background-color: #0d6efd; }
+.cat-functions .cat-count-badge { background-color: #198754; }
+.cat-storage   .cat-count-badge { background-color: #087990; }
+.cat-multimodal .cat-count-badge { background-color: #6f42c1; }
+.cat-advanced   .cat-count-badge { background-color: #fd7e14; }
+
+/* ──────────────────────────────────────────
+   Purple CTA button for multimodal category
+────────────────────────────────────────── */
+.btn-purple {
+    background-color: #6f42c1;
+    border-color: #6f42c1;
+    color: #fff;
+}
+
+.btn-purple:hover,
+.btn-purple:focus {
+    background-color: #5a32a3;
+    border-color: #5a32a3;
+    color: #fff;
+}

@@ -1,6 +1,6 @@
 ﻿<div class="top-row ps-3 navbar navbar-dark">
     <div class="container-fluid">
-        <a class="navbar-brand" href="">AgentsWebUI</a>
+        <a class="navbar-brand" href="">🤖 Agent Samples</a>
     </div>
 </div>
 
@@ -8,62 +8,64 @@
 
 <div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
     <nav class="nav flex-column">
+
+        @* Home *@
         <div class="nav-item px-3">
             <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
                 <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
             </NavLink>
         </div>
 
+        <hr class="nav-divider" />
+
+        @* 🚀 Basics *@
         <div class="nav-item px-3">
-            <NavLink class="nav-link" href="agent01">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Basic
-            </NavLink>
-            <NavLink class="nav-link" href="agent02">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Threads
-            </NavLink>
-            <NavLink class="nav-link" href="agent03">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Functions/Tools
-            </NavLink>
-            <NavLink class="nav-link" href="agent04">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Function Approval
-            </NavLink>
-            <NavLink class="nav-link" href="agent05">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Structured Output
-            </NavLink>
-            <NavLink class="nav-link" href="agent06">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Persisted Conversation
-            </NavLink>
-            <NavLink class="nav-link" href="agent07">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Custom Thread Storage
-            </NavLink>
-            <NavLink class="nav-link" href="agent08">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Using Image
-            </NavLink>
-            <NavLink class="nav-link" href="agent09">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Using MCP Server
-            </NavLink>
-            <NavLink class="nav-link" href="agent10">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Agent as Function
-            </NavLink>
-            <NavLink class="nav-link" href="agent11">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Chat Reduction
-            </NavLink>
-            <NavLink class="nav-link" href="agent12">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Backgroud Responses
-            </NavLink>
-            <NavLink class="nav-link" href="agent13">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Plugins
-            </NavLink>
-            <NavLink class="nav-link" href="agent14">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Middleware
-            </NavLink>
-            <NavLink class="nav-link" href="agent15">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Declartive Agent
-            </NavLink>
-            <NavLink class="nav-link" href="agent16">
-                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Reasoning
-            </NavLink>
+            <div class="nav-category-header" style="color: #0d6efd;">🚀 BASICS</div>
+            <NavLink class="nav-link" href="agent01">Basic</NavLink>
+            <NavLink class="nav-link" href="agent02">Threads</NavLink>
+            <NavLink class="nav-link" href="agent05">Structured Output</NavLink>
         </div>
+
+        <hr class="nav-divider" />
+
+        @* 🔧 Functions & Tools *@
+        <div class="nav-item px-3">
+            <div class="nav-category-header" style="color: #198754;">🔧 FUNCTIONS &amp; TOOLS</div>
+            <NavLink class="nav-link" href="agent03">Functions/Tools</NavLink>
+            <NavLink class="nav-link" href="agent04">Function Approval</NavLink>
+            <NavLink class="nav-link" href="agent10">Agent as Function</NavLink>
+            <NavLink class="nav-link" href="agent13">Plugins</NavLink>
+        </div>
+
+        <hr class="nav-divider" />
+
+        @* 💾 Storage & Persistence *@
+        <div class="nav-item px-3">
+            <div class="nav-category-header" style="color: #087990;">💾 STORAGE &amp; PERSISTENCE</div>
+            <NavLink class="nav-link" href="agent06">Persisted Conversation</NavLink>
+            <NavLink class="nav-link" href="agent07">Custom Thread Storage</NavLink>
+            <NavLink class="nav-link" href="agent11">Chat Reduction</NavLink>
+        </div>
+
+        <hr class="nav-divider" />
+
+        @* 🌐 Multimodal & External *@
+        <div class="nav-item px-3">
+            <div class="nav-category-header" style="color: #6f42c1;">🌐 MULTIMODAL &amp; EXTERNAL</div>
+            <NavLink class="nav-link" href="agent08">Using Image</NavLink>
+            <NavLink class="nav-link" href="agent09">Using MCP Server</NavLink>
+            <NavLink class="nav-link" href="agent12">Background Responses</NavLink>
+        </div>
+
+        <hr class="nav-divider" />
+
+        @* ⚡ Advanced Features *@
+        <div class="nav-item px-3">
+            <div class="nav-category-header" style="color: #fd7e14;">⚡ ADVANCED FEATURES</div>
+            <NavLink class="nav-link" href="agent14">Middleware</NavLink>
+            <NavLink class="nav-link" href="agent15">Declarative Agent</NavLink>
+            <NavLink class="nav-link" href="agent16">Reasoning</NavLink>
+        </div>
+
     </nav>
 </div>
-
