@@ -35,18 +35,21 @@
 }
 
 @code {
+
+#pragma warning disable MEAI001
+
     private string message = "Write a very long novel about otters in space.";
     private string instructions = "You are a novel writer.";
     private string modelName = "openai/gpt-4o-mini";
     private string endpoint = "https://openrouter.ai/api/v1";
     private ChatClientAgent agent = default!;
-    private AgentThread thread = default!;
+    private AgentSession thread = default!;
     private AgentRunOptions options = new() { AllowBackgroundResponses = true };
 
     private string response = string.Empty;
     private bool isLoading = false;
 
-    protected override Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
     {
         var apiKey = Configuration["OPEN_ROUTER_API_KEY"] ??
             throw new InvalidOperationException("OPEN_ROUTER_API_KEY is not set in.");
@@ -59,10 +62,10 @@
         var credential = new ApiKeyCredential(apiKey);
         var chatClient = new ChatClient(modelName, credential, openAIClientOptions);
 
-        agent = chatClient.CreateAIAgent(instructions: instructions);
-        thread = agent.GetNewThread();
+        agent = chatClient.AsAIAgent(instructions: instructions);
+        thread = await agent.CreateSessionAsync();
 
-        return base.OnInitializedAsync();
+        await base.OnInitializedAsync();
     }
 
     private async Task OnSubmit()
@@ -90,9 +93,9 @@
 
         // Reset options and thread for streaming.
         options = new() { AllowBackgroundResponses = true };
-        thread = agent.GetNewThread();
+        thread = await agent.CreateSessionAsync();
 
-        AgentRunResponseUpdate? lastReceivedUpdate = null;
+        AgentResponseUpdate? lastReceivedUpdate = null;
         // Start streaming.
         await foreach (var update in agent.RunStreamingAsync(message, thread, options))
         {
@@ -134,4 +137,5 @@
         // Convert Markdown to HTML using Markdig
         return Markdown.ToHtml(value, new MarkdownPipelineBuilder().UseAdvancedExtensions().Build());
     }
+#pragma warning restore MEAI001
 }

@@ -64,7 +64,7 @@
         response = string.Empty;
         isLoading = true;        
 
-        var agent = chatClient.CreateAIAgent(instructions: instructions, name: "HelpfulAssistant");
+        var agent = chatClient.AsAIAgent(instructions: instructions, name: "HelpfulAssistant");
         var agentResponse = await agent.RunAsync<PersonInfo>(message);
         response = $"Name: {agentResponse.Result.Name} <br />";
         response += $"Age: {agentResponse.Result.Age} <br />";
@@ -76,7 +76,7 @@
             ChatOptions = new()
             {
                 Instructions = instructions,
-                ResponseFormat = Microsoft.Extensions.AI.ChatResponseFormat.ForJsonSchema<PersonInfo>()
+                ResponseFormat = ChatResponseFormat.ForJsonSchema<PersonInfo>()
             }
         };
 
@@ -94,15 +94,18 @@
             ChatOptions = new()
             {
                 Instructions = instructions,
-                ResponseFormat = Microsoft.Extensions.AI.ChatResponseFormat.ForJsonSchema<PersonInfo>()
+                ResponseFormat = ChatResponseFormat.ForJsonSchema<PersonInfo>()
             }
         };
 
-        var agent = chatClient.CreateAIAgent(agentOptions);
+        var agent = chatClient.AsAIAgent(agentOptions);
 
         // Invoke the agent with some unstructured input while streaming, to extract the structured information from.
         var updates = agent.RunStreamingAsync(message);
-        var personInfo = (await updates.ToAgentRunResponseAsync()).Deserialize<PersonInfo>(JsonSerializerOptions.Web);
+        // Assemble all the parts of the streamed output.
+        var nonGenericResponse = await updates.ToAgentResponseAsync();
+        // Access the structured output by deserializing JSON in the Text property.
+        var personInfo = JsonSerializer.Deserialize<PersonInfo>(nonGenericResponse.Text)!;
         response += $"Name: {personInfo.Name}<br />";
         response += $"Age: {personInfo.Age}<br />";
         response += $"Occupation: {personInfo.Occupation}<br />";

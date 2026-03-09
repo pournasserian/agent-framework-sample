@@ -62,12 +62,12 @@
 
         var credential = new ApiKeyCredential(apiKey);
         var chatClient = new ChatClient(modelName, credential, openAIClientOptions);
-        var weatherAgent = chatClient.CreateAIAgent(
+        var weatherAgent = chatClient.AsAIAgent(
                 instructions: "You answer questions about the weather.",
                 name: "WeatherAgent",
                 description: "An agent that answers questions about the weather.",
                 tools: [AIFunctionFactory.Create(GetWeather)]);
-        agent = chatClient.CreateAIAgent(instructions: instructions, tools: [weatherAgent.AsAIFunction()]);
+        agent = chatClient.AsAIAgent(instructions: instructions, tools: [weatherAgent.AsAIFunction()]);
 
         return base.OnInitializedAsync();
     }

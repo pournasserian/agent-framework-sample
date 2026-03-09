@@ -69,7 +69,7 @@
         var chatClient = new ChatClient(modelName, credential, openAIClientOptions);
 
 
-        agent = chatClient.CreateAIAgent(instructions: instructions, tools:
+        agent = chatClient.AsAIAgent(instructions: instructions, tools:
             [
                 new ApprovalRequiredAIFunction(AIFunctionFactory.Create(Add)),
                 new ApprovalRequiredAIFunction(AIFunctionFactory.Create(Multiply))
@@ -84,9 +84,9 @@
         log = "Starting synchronous run...<br />";
         isLoading = true;
 
-        var thread = agent.GetNewThread();
+        var thread = await agent.CreateSessionAsync();
         var agentResponse = await agent.RunAsync(message, thread);
-        var userInputRequests = agentResponse.UserInputRequests.ToList();
+        var userInputRequests = agentResponse.Messages.ToList();
 
         while (userInputRequests.Count > 0)
         {
@@ -103,7 +103,7 @@
             }
 
             agentResponse = await agent.RunAsync(userInputResponses, thread);
-            userInputRequests = agentResponse.UserInputRequests.ToList();
+            userInputRequests = agentResponse.Messages.ToList();
         }
         response = agentResponse.ToString();
 
@@ -116,9 +116,9 @@
         log = "Starting streaming run...<br />";
         isLoading = true;
 
-        var thread = agent.GetNewThread();
+        var thread = await agent.CreateSessionAsync();
         var updates = await agent.RunStreamingAsync(message, thread).ToListAsync();
-        var userInputRequests = updates.SelectMany(x => x.UserInputRequests).ToList();
+        var userInputRequests = updates.SelectMany(x => x.Contents).ToList();
 
         while (userInputRequests.Count > 0)
         {
@@ -135,7 +135,7 @@
             }
 
             updates = await agent.RunStreamingAsync(userInputResponses, thread).ToListAsync();
-            userInputRequests = updates.SelectMany(x => x.UserInputRequests).ToList();
+            userInputRequests = updates.SelectMany(x => x.Contents).ToList();
 
             foreach (var item in updates)
             {

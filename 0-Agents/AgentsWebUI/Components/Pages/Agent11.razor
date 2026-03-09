@@ -72,14 +72,14 @@
     private string modelName = "x-ai/grok-4.1-fast";
     private string endpoint = "https://openrouter.ai/api/v1";
     private ChatClientAgent agent = default!;
-    private AgentThread? thread;
+    private AgentSession? thread;
 
     private string response = string.Empty;
     private string log = string.Empty;
     private bool isLoading = false;
     private bool started = false;
 
-    protected override Task OnInitializedAsync()
+    protected override async Task OnInitializedAsync()
     {
         var apiKey = Configuration["OPEN_ROUTER_API_KEY"] ??
             throw new InvalidOperationException("OPEN_ROUTER_API_KEY is not set in.");
@@ -94,13 +94,13 @@
         var chatAgentOptions = new ChatClientAgentOptions
         {
             ChatOptions = new() { Instructions = instructions },
-            ChatMessageStoreFactory = ctx => new InMemoryChatMessageStore(new MessageCountingChatReducer(2), ctx.SerializedState, ctx.JsonSerializerOptions)
+            ChatHistoryProvider = new InMemoryChatHistoryProvider(new() { ChatReducer = new MessageCountingChatReducer(2) })
         };
 
-        agent = chatClient.CreateAIAgent(chatAgentOptions);
-        thread = agent.GetNewThread();
+        agent = chatClient.AsAIAgent(chatAgentOptions);
+        thread = await agent.CreateSessionAsync();
 
-        return base.OnInitializedAsync();
+        await base.OnInitializedAsync();
     }
 
     private async Task OnSubmit()
@@ -109,7 +109,7 @@
         isLoading = true;
         log = "Starting synchronous run...<br />";
 
-        AgentRunResponse? agentResponse;
+        AgentResponse? agentResponse;
 
         if (started)
             agentResponse = await agent.RunAsync(secondMessage, thread);
@@ -119,7 +119,7 @@
         response += agentResponse.Text;
         response += "\n\n";
 
-        var chatHistory = thread.GetService<IList<Microsoft.Extensions.AI.ChatMessage>>();
+        var chatHistory = thread!.GetService<IList<Microsoft.Extensions.AI.ChatMessage>>();
         log += $"Chat History Count:  {chatHistory?.Count}<br />";
 
         started = true;
@@ -133,7 +133,7 @@
 
         log += "Starting streaming run...<br />";
 
-        IAsyncEnumerable<AgentRunResponseUpdate>? updates;
+        IAsyncEnumerable<AgentResponseUpdate>? updates;
         if (started)
             updates = agent.RunStreamingAsync(secondMessage, thread);
         else
@@ -147,7 +147,7 @@
 
         response += "\n\n";
 
-        var chatHistory = thread.GetService<IList<Microsoft.Extensions.AI.ChatMessage>>();
+        var chatHistory = thread!.GetService<IList<Microsoft.Extensions.AI.ChatMessage>>();
         log += $"Chat History Count:  {chatHistory?.Count}<br />";
 
         started = true;

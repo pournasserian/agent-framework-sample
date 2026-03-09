@@ -1,8 +1,6 @@
 ﻿@page "/agent14"
 @inject IConfiguration Configuration
 
-@using ChatMessage = Microsoft.Extensions.AI.ChatMessage
-
 <PageTitle>Agent 14</PageTitle>
 
 <h1>Agent 14 - Middleware</h1>
@@ -66,7 +64,7 @@
         var credential = new ApiKeyCredential(apiKey);
         var chatClient = new ChatClient(modelName, credential, openAIClientOptions);
 
-        var originalAgent = chatClient.CreateAIAgent(instructions: instructions, tools: [AIFunctionFactory.Create(GetWeather), AIFunctionFactory.Create(GetDateTime)]);
+        var originalAgent = chatClient.AsAIAgent(instructions: instructions, tools: [AIFunctionFactory.Create(GetWeather), AIFunctionFactory.Create(GetDateTime)]);
         // Adding middleware to the agent level
         agent = originalAgent.AsBuilder()
             .Use(FunctionCallMiddleware)
@@ -82,7 +80,7 @@
         response = string.Empty;
         isLoading = true;
         log = "Starting synchronous run...<br />";
-        var thread = agent.GetNewThread();
+        var thread = await agent.CreateSessionAsync();
         foreach (var line in message.Split("\n", StringSplitOptions.RemoveEmptyEntries))
         {
             response += "<b>Prompt:</b> " + line + "<br />";
@@ -100,7 +98,7 @@
         response = string.Empty;
         isLoading = true;
         log = "Starting streaming run...<br />";
-        var thread = agent.GetNewThread();
+        var thread = await agent.CreateSessionAsync();
         foreach (var line in message.Split("\n", StringSplitOptions.RemoveEmptyEntries))
         {
             response += "<b>Prompt:</b> " + line + "<br />";
@@ -170,7 +168,7 @@
     }
 
     // This middleware redacts PII information from input and output messages.
-    async Task<AgentRunResponse> PIIMiddleware(IEnumerable<ChatMessage> messages, AgentThread? thread, AgentRunOptions? options, AIAgent innerAgent, CancellationToken cancellationToken)
+    async Task<AgentResponse> PIIMiddleware(IEnumerable<ChatMessage> messages, AgentSession? thread, AgentRunOptions? options, AIAgent innerAgent, CancellationToken cancellationToken)
     {
         // Redact PII information from input messages
         var filteredMessages = FilterMessages(messages);
@@ -210,7 +208,7 @@
     }
 
     // This middleware enforces guardrails by redacting certain keywords from input and output messages.
-    async Task<AgentRunResponse> GuardrailMiddleware(IEnumerable<ChatMessage> messages, AgentThread? thread, AgentRunOptions? options, AIAgent innerAgent, CancellationToken cancellationToken)
+    async Task<AgentResponse> GuardrailMiddleware(IEnumerable<ChatMessage> messages, AgentSession? thread, AgentRunOptions? options, AIAgent innerAgent, CancellationToken cancellationToken)
     {
         // Redact keywords from input messages
         var filteredMessages = FilterMessages(messages);
@@ -247,11 +245,11 @@
     }
 
     // This middleware handles Human in the loop console interaction for any user approval required during function calling.
-    async Task<AgentRunResponse> ConsolePromptingApprovalMiddleware(IEnumerable<ChatMessage> messages, AgentThread? thread, AgentRunOptions? options, AIAgent innerAgent, CancellationToken cancellationToken)
+    async Task<AgentResponse> ConsolePromptingApprovalMiddleware(IEnumerable<ChatMessage> messages, AgentSession? thread, AgentRunOptions? options, AIAgent innerAgent, CancellationToken cancellationToken)
     {
         var response = await innerAgent.RunAsync(messages, thread, options, cancellationToken);
 
-        var userInputRequests = response.UserInputRequests.ToList();
+        var userInputRequests = response.Messages.ToList();
 
         while (userInputRequests.Count > 0)
         {
@@ -270,7 +268,7 @@
 
             response = await innerAgent.RunAsync(response.Messages, thread, options, cancellationToken);
 
-            userInputRequests = response.UserInputRequests.ToList();
+            userInputRequests = response.Messages.ToList();
         }
 
         return response;

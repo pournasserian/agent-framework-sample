@@ -34,6 +34,8 @@
 }
 
 @code {
+#pragma warning disable MEAI001
+
     private string message = "Tell me current time and weather in Seattle.";
     private string instructions = "You are a helpful assistant that helps people find information.";
     private string modelName = "openai/gpt-4.1-nano";
@@ -67,7 +69,9 @@
 
         var credential = new ApiKeyCredential(apiKey);
         var chatClient = new ChatClient(modelName, credential, openAIClientOptions);
-        agent = chatClient.CreateAIAgent(instructions: instructions, 
+        agent = chatClient.AsAIAgent(
+            instructions: instructions,
+            name: "InfoAgent",
             tools: [.. serviceProvider.GetRequiredService<AgentPlugin>().AsAITools()],
             services: serviceProvider);
 
@@ -186,4 +190,5 @@
         }
     }
 
+#pragma warning restore MEAI001
 }

@@ -79,7 +79,7 @@
 
         var credential = new ApiKeyCredential(apiKey);
         var chatClient = new ChatClient(modelName, credential, openAIClientOptions);
-        agent = chatClient.CreateAIAgent(instructions: instructions, name: "DocsAgent");
+        agent = chatClient.AsAIAgent(instructions: instructions, name: "DocsAgent");
 
         await foreach (var update in agent.RunStreamingAsync(message))
         {
@@ -131,9 +131,9 @@
 
         log += "Creating agent with MCP tools... <br />";
         await InvokeAsync(StateHasChanged);
-        agent = chatClient.CreateAIAgent(instructions: instructions, name: "DocsAgent", tools: [.. mcpTools]);
+        agent = chatClient.AsAIAgent(instructions: instructions, name: "DocsAgent", tools: [.. mcpTools]);
 
-        var thread = agent.GetNewThread();
+        var thread = await agent.CreateSessionAsync();
         await foreach (var update in agent.RunStreamingAsync(message, thread))
         {
             response += update.ToString();

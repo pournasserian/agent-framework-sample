@@ -54,7 +54,7 @@
 
         var credential = new ApiKeyCredential(apiKey);
         var chatClient = new ChatClient(modelName, credential, openAIClientOptions);
-        agent = chatClient.CreateAIAgent(instructions: instructions, name: "Joker");
+        agent = chatClient.AsAIAgent(instructions: instructions, name: "Joker");
 
         return base.OnInitializedAsync();
     }

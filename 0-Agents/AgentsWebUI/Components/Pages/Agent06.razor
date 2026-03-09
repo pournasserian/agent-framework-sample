@@ -70,7 +70,7 @@
 
         var credential = new ApiKeyCredential(apiKey);
         var chatClient = new ChatClient(modelName, credential, openAIClientOptions);
-        agent = chatClient.CreateAIAgent(instructions: instructions, name: "Joker");
+        agent = chatClient.AsAIAgent(instructions: instructions, name: "Joker");
 
         return base.OnInitializedAsync();
     }
@@ -83,12 +83,12 @@
         isLoading = true;
 
         log = "Starting new thread...<br />";
-        var thread = agent.GetNewThread();
+        var thread = await agent.CreateSessionAsync();
         var agentResponse = await agent.RunAsync(message, thread);
         response = agentResponse.ToString() + "<hr />";
 
         log += "Serializing thread to temporary file...<br />";
-        var serializedThread = thread.Serialize();
+        var serializedThread = thread.StateBag.Serialize();
 
         threadLog = JsonSerializer.Serialize(serializedThread, new JsonSerializerOptions { WriteIndented = true });
         var tempFilePath = Path.GetTempFileName();
@@ -100,12 +100,12 @@
         var reloadedSerializedThread = JsonElement.Parse(await File.ReadAllTextAsync(tempFilePath));
 
         log += "Deserializing thread...<br />";
-        var resumedThread = agent.DeserializeThread(reloadedSerializedThread);
+        var resumedThread = await agent.DeserializeSessionAsync(reloadedSerializedThread);
 
         log += "Continuing conversation in resumed thread...<br />";
         var agentResponse2 = await agent.RunAsync("Now tell the same joke in the voice of a pirate, and add some emojis to the joke.", resumedThread);
 
-        threadLog += JsonSerializer.Serialize(resumedThread.Serialize(), new JsonSerializerOptions { WriteIndented = true });
+        threadLog += JsonSerializer.Serialize(resumedThread.StateBag.Serialize(), new JsonSerializerOptions { WriteIndented = true });
 
         response += agentResponse2.ToString();
 
@@ -120,7 +120,7 @@
         isLoading = true;
 
         log = "Starting new thread...<br />";
-        var thread = agent.GetNewThread();
+        var thread = await agent.CreateSessionAsync();
         await foreach (var update in agent.RunStreamingAsync(message, thread))
         {
             response += update.ToString();
@@ -129,7 +129,7 @@
         response += "<hr />";
 
         log += "Serializing thread to temporary file...<br />";
-        var serializedThread = thread.Serialize();
+        var serializedThread = thread.StateBag.Serialize();
 
         threadLog = JsonSerializer.Serialize(serializedThread, new JsonSerializerOptions { WriteIndented = true });
         var tempFilePath = Path.GetTempFileName();
@@ -141,7 +141,7 @@
         var reloadedSerializedThread = JsonElement.Parse(await File.ReadAllTextAsync(tempFilePath));
 
         log += "Deserializing thread...<br />";
-        var resumedThread = agent.DeserializeThread(reloadedSerializedThread);
+        var resumedThread = await agent.DeserializeSessionAsync(reloadedSerializedThread);
 
         log += "Continuing conversation in resumed thread...<br />";
         await foreach (var update in agent.RunStreamingAsync("Now tell the same joke in the voice of a pirate, and add some emojis to the joke.", resumedThread))
@@ -150,7 +150,7 @@
             await InvokeAsync(StateHasChanged);
         }
 
-        threadLog += JsonSerializer.Serialize(resumedThread.Serialize(), new JsonSerializerOptions { WriteIndented = true });
+        threadLog += JsonSerializer.Serialize(resumedThread.StateBag.Serialize(), new JsonSerializerOptions { WriteIndented = true });
 
         isLoading = false;
     }
