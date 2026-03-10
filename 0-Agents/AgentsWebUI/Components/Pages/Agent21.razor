@@ -1,0 +1,160 @@
+@page "/agent21"
+@using Markdig
+@using System.ComponentModel
+@inject IConfiguration Configuration
+
+<PageTitle>Agent 21</PageTitle>
+<h1>Agent 21 - ReAct (Reason + Act)</h1>
+<p class="lead">Interleaves reasoning traces with action execution, allowing the agent to think, act, observe, and iterate toward a solution.</p>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-3">
+            <div class="card-header">Configuration</div>
+            <div class="card-body">
+                <div class="form-group mb-3">
+                    <label class="form-label fw-semibold">Message</label>
+                    <textarea class="form-control" rows="3" @bind="message"></textarea>
+                </div>
+                <button class="btn btn-primary me-2" @onclick="OnSubmit" disabled="@isLoading">
+                    @(isLoading ? "Running..." : "Submit")
+                </button>
+                <button class="btn btn-outline-primary" @onclick="OnSubmitStream" disabled="@isLoading">
+                    @(isLoading ? "Running..." : "Stream")
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (logMessages.Count > 0)
+{
+    <div class="card mb-3">
+        <div class="card-header">Log — Tool Invocations</div>
+        <div class="card-body">
+            <ul class="list-unstyled mb-0">
+                @foreach (var log in logMessages)
+                {
+                    <li class="small text-muted"><code>@log</code></li>
+                }
+            </ul>
+        </div>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(response))
+{
+    <div class="card mb-3">
+        <div class="card-header">Response — Thought → Action → Observation Loop</div>
+        <div class="card-body">
+            <p>@((MarkupString)response)</p>
+        </div>
+    </div>
+}
+
+@code {
+#pragma warning disable MEAI001
+    private string message = "What is the population of Canada divided by the number of provinces?";
+    private string modelName = "openai/gpt-4.1-nano";
+    private string endpoint = "https://openrouter.ai/api/v1";
+    private ChatClientAgent agent = default!;
+    private string response = string.Empty;
+    private bool isLoading = false;
+    private List<string> logMessages = [];
+
+    private string RenderMarkdown(string value)
+        => Markdown.ToHtml(value, new MarkdownPipelineBuilder().UseAdvancedExtensions().Build());
+
+    protected override Task OnInitializedAsync()
+    {
+        var apiKey = Configuration["OPEN_ROUTER_API_KEY"] ??
+            throw new InvalidOperationException("OPEN_ROUTER_API_KEY is not set.");
+        var openAIClientOptions = new OpenAIClientOptions { Endpoint = new Uri(endpoint) };
+        var credential = new ApiKeyCredential(apiKey);
+        var chatClient = new ChatClient(modelName, credential, openAIClientOptions);
+
+        var tools = new[]
+        {
+            AIFunctionFactory.Create(SearchWeb),
+            AIFunctionFactory.Create(Calculate),
+            AIFunctionFactory.Create(LookupFact)
+        };
+
+        agent = chatClient.AsAIAgent(
+            instructions: "You use the ReAct pattern: alternate between Thought (reasoning about what to do), Action (using a tool), and Observation (noting the result). Format each cycle as:\nThought: [your reasoning]\nAction: [tool you will use and why]\nObservation: [what you learned]\n\nAfter 2-3 cycles, provide a Final Answer.",
+            tools: tools,
+            name: "ReActAgent");
+
+        return base.OnInitializedAsync();
+    }
+
+    private async Task OnSubmit()
+    {
+        isLoading = true;
+        response = string.Empty;
+        logMessages.Clear();
+        logMessages.Add("⚡ ReAct: Thought → Action → Observation loop starting...");
+        try
+        {
+            var result = await agent.RunAsync(message);
+            response = RenderMarkdown(result.ToString());
+        }
+        finally
+        {
+            isLoading = false;
+        }
+    }
+
+    private async Task OnSubmitStream()
+    {
+        isLoading = true;
+        response = string.Empty;
+        logMessages.Clear();
+        logMessages.Add("⚡ ReAct: Thought → Action → Observation loop starting (streaming)...");
+        try
+        {
+            var rawText = string.Empty;
+            await foreach (var update in agent.RunStreamingAsync(message))
+            {
+                rawText += update.ToString();
+                response = RenderMarkdown(rawText);
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        finally
+        {
+            isLoading = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    [Description("Searches the web for information about a topic")]
+    private string SearchWeb([Description("The search query")] string query)
+    {
+        logMessages.Add($"🔍 SearchWeb: \"{query}\"");
+        return $"Search results for '{query}': [Wikipedia] The topic covers key facts including population statistics, geographic data, and historical information. Canada has a population of approximately 38 million people. Canada has 10 provinces and 3 territories.";
+    }
+
+    [Description("Calculates a mathematical expression")]
+    private string Calculate([Description("The mathematical expression to evaluate")] string expression)
+    {
+        logMessages.Add($"🔢 Calculating: {expression}");
+        try
+        {
+            var result = new System.Data.DataTable().Compute(expression, null);
+            return $"Computed: {expression} = {result}";
+        }
+        catch
+        {
+            return $"Could not compute: {expression}";
+        }
+    }
+
+    [Description("Looks up a specific fact about a topic")]
+    private string LookupFact([Description("The topic to look up")] string topic)
+    {
+        logMessages.Add($"📚 LookupFact: \"{topic}\"");
+        return $"Fact about {topic}: This is a well-known subject with interesting properties. Canada's population is approximately 38,250,000. Canada has exactly 10 provinces (Ontario, Quebec, BC, Alberta, Manitoba, Saskatchewan, Nova Scotia, New Brunswick, PEI, Newfoundland) and 3 territories.";
+    }
+#pragma warning restore MEAI001
+}

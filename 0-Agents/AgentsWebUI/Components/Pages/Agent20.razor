@@ -1,0 +1,135 @@
+@page "/agent20"
+@using Markdig
+@inject IConfiguration Configuration
+
+<PageTitle>Agent 20</PageTitle>
+<h1>Agent 20 - Program of Thoughts (PoT)</h1>
+<p class="lead">Generates executable pseudocode or step-by-step algorithmic logic to solve problems, separating computation from reasoning.</p>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-3">
+            <div class="card-header">Configuration</div>
+            <div class="card-body">
+                <div class="form-group mb-3">
+                    <label class="form-label fw-semibold">Message</label>
+                    <textarea class="form-control" rows="3" @bind="message"></textarea>
+                </div>
+                <button class="btn btn-primary me-2" @onclick="OnSubmit" disabled="@isLoading">
+                    @(isLoading ? "Running..." : "Submit")
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (logMessages.Count > 0)
+{
+    <div class="card mb-3">
+        <div class="card-header">Log</div>
+        <div class="card-body">
+            <ul class="list-unstyled mb-0">
+                @foreach (var log in logMessages)
+                {
+                    <li class="small text-muted"><code>@log</code></li>
+                }
+            </ul>
+        </div>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(programOutput))
+{
+    <div class="card mb-3 border-primary">
+        <div class="card-header bg-primary text-white">Program (Pseudocode)</div>
+        <div class="card-body">
+            <pre><code>@programOutput</code></pre>
+        </div>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(executionTrace))
+{
+    <div class="card mb-3 border-success">
+        <div class="card-header bg-success text-white">Execution Trace</div>
+        <div class="card-body">
+            <p>@((MarkupString)RenderMarkdown(executionTrace))</p>
+        </div>
+    </div>
+}
+
+@code {
+    private string message = "Calculate the sum of all even numbers between 1 and 20, then multiply by the count of odd numbers in the same range.";
+    private string modelName = "openai/gpt-4.1-nano";
+    private string endpoint = "https://openrouter.ai/api/v1";
+
+    private ChatClientAgent agentProgrammer = default!;
+    private ChatClientAgent agentInterpreter = default!;
+
+    private string programOutput = string.Empty;
+    private string executionTrace = string.Empty;
+
+    private bool isLoading = false;
+    private List<string> logMessages = [];
+
+    private string RenderMarkdown(string value)
+        => Markdown.ToHtml(value, new MarkdownPipelineBuilder().UseAdvancedExtensions().Build());
+
+    protected override Task OnInitializedAsync()
+    {
+        var apiKey = Configuration["OPEN_ROUTER_API_KEY"] ??
+            throw new InvalidOperationException("OPEN_ROUTER_API_KEY is not set.");
+        var openAIClientOptions = new OpenAIClientOptions { Endpoint = new Uri(endpoint) };
+        var credential = new ApiKeyCredential(apiKey);
+
+        var chatClient = new ChatClient(modelName, credential, openAIClientOptions);
+
+        agentProgrammer = chatClient.AsAIAgent(
+            instructions: "You are a computational problem-solver. When given a problem, write a clear pseudocode program to solve it. Use numbered steps, variables, loops and conditionals as needed. Format it as a code block. Do NOT execute it — just write the program.",
+            name: "Programmer");
+
+        agentInterpreter = chatClient.AsAIAgent(
+            instructions: "You are a program interpreter. You will receive pseudocode and execute it mentally, tracing through each step. Show the variable states and final result. Format: trace each step, show variable values, end with 'Result: [value]'.",
+            name: "Interpreter");
+
+        return base.OnInitializedAsync();
+    }
+
+    private async Task OnSubmit()
+    {
+        isLoading = true;
+        programOutput = string.Empty;
+        executionTrace = string.Empty;
+        logMessages.Clear();
+
+        try
+        {
+            logMessages.Add("💻 Program of Thoughts: generating pseudocode then executing trace");
+            await InvokeAsync(StateHasChanged);
+
+            logMessages.Add("📝 Step 1: Generate program (Programmer agent)");
+            await InvokeAsync(StateHasChanged);
+
+            var rawProgram = (await agentProgrammer.RunAsync(message)).ToString();
+
+            // Strip markdown code fences if present
+            programOutput = rawProgram
+                .Replace("```pseudocode", "")
+                .Replace("```python", "")
+                .Replace("```", "")
+                .Trim();
+
+            logMessages.Add("▶️ Step 2: Execute program (Interpreter agent)");
+            await InvokeAsync(StateHasChanged);
+
+            executionTrace = (await agentInterpreter.RunAsync($"Pseudocode to execute:\n{rawProgram}")).ToString();
+
+            logMessages.Add("✅ Program of Thoughts complete.");
+        }
+        finally
+        {
+            isLoading = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+}

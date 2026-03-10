@@ -1,0 +1,170 @@
+@page "/agent18"
+@using Markdig
+@inject IConfiguration Configuration
+
+<PageTitle>Agent 18</PageTitle>
+<h1>Agent 18 - Tree of Thoughts</h1>
+<p class="lead">Explores multiple reasoning branches simultaneously, evaluates each path, and selects the most promising solution.</p>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-3">
+            <div class="card-header">Configuration</div>
+            <div class="card-body">
+                <div class="form-group mb-3">
+                    <label class="form-label fw-semibold">Message</label>
+                    <textarea class="form-control" rows="3" @bind="message"></textarea>
+                </div>
+                <button class="btn btn-primary me-2" @onclick="OnSubmit" disabled="@isLoading">
+                    @(isLoading ? "Running..." : "Submit")
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (logMessages.Count > 0)
+{
+    <div class="card mb-3">
+        <div class="card-header">Log</div>
+        <div class="card-body">
+            <ul class="list-unstyled mb-0">
+                @foreach (var log in logMessages)
+                {
+                    <li class="small text-muted"><code>@log</code></li>
+                }
+            </ul>
+        </div>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(branchA))
+{
+    <div class="card mb-3 border-primary">
+        <div class="card-header bg-primary text-white">Branch A — Mathematical/Analytical</div>
+        <div class="card-body">
+            <p>@((MarkupString)RenderMarkdown(branchA))</p>
+        </div>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(branchB))
+{
+    <div class="card mb-3 border-success">
+        <div class="card-header bg-success text-white">Branch B — Creative/Lateral</div>
+        <div class="card-body">
+            <p>@((MarkupString)RenderMarkdown(branchB))</p>
+        </div>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(branchC))
+{
+    <div class="card mb-3 border-info">
+        <div class="card-header bg-info text-white">Branch C — Practical/Common-Sense</div>
+        <div class="card-body">
+            <p>@((MarkupString)RenderMarkdown(branchC))</p>
+        </div>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(evaluation))
+{
+    <div class="card mb-3 border-warning">
+        <div class="card-header bg-warning text-dark">Evaluation &amp; Final Solution</div>
+        <div class="card-body">
+            <p>@((MarkupString)RenderMarkdown(evaluation))</p>
+        </div>
+    </div>
+}
+
+@code {
+    private string message = "How would you approach building a sustainable city transportation system?";
+    private string modelName = "openai/gpt-4.1-nano";
+    private string endpoint = "https://openrouter.ai/api/v1";
+
+    private ChatClientAgent agentBranch1 = default!;
+    private ChatClientAgent agentBranch2 = default!;
+    private ChatClientAgent agentBranch3 = default!;
+    private ChatClientAgent agentEvaluator = default!;
+
+    private string branchA = string.Empty;
+    private string branchB = string.Empty;
+    private string branchC = string.Empty;
+    private string evaluation = string.Empty;
+
+    private bool isLoading = false;
+    private List<string> logMessages = [];
+
+    private string RenderMarkdown(string value)
+        => Markdown.ToHtml(value, new MarkdownPipelineBuilder().UseAdvancedExtensions().Build());
+
+    protected override Task OnInitializedAsync()
+    {
+        var apiKey = Configuration["OPEN_ROUTER_API_KEY"] ??
+            throw new InvalidOperationException("OPEN_ROUTER_API_KEY is not set.");
+        var openAIClientOptions = new OpenAIClientOptions { Endpoint = new Uri(endpoint) };
+        var credential = new ApiKeyCredential(apiKey);
+
+        var chatClient = new ChatClient(modelName, credential, openAIClientOptions);
+
+        agentBranch1 = chatClient.AsAIAgent(
+            instructions: "You are Approach A. Explore ONE specific approach to solve the problem. Think step by step from a mathematical/analytical angle. Be concise (3-5 sentences).",
+            name: "BranchA");
+
+        agentBranch2 = chatClient.AsAIAgent(
+            instructions: "You are Approach B. Explore ONE specific approach to solve the problem. Think step by step from a creative/lateral thinking angle. Be concise (3-5 sentences).",
+            name: "BranchB");
+
+        agentBranch3 = chatClient.AsAIAgent(
+            instructions: "You are Approach C. Explore ONE specific approach to solve the problem. Think step by step from a practical/common-sense angle. Be concise (3-5 sentences).",
+            name: "BranchC");
+
+        agentEvaluator = chatClient.AsAIAgent(
+            instructions: "You are a solution evaluator. You will receive three different approaches to a problem. Evaluate which approach is most promising and explain why. Then synthesize the best elements into a Final Solution.",
+            name: "Evaluator");
+
+        return base.OnInitializedAsync();
+    }
+
+    private async Task OnSubmit()
+    {
+        isLoading = true;
+        branchA = string.Empty;
+        branchB = string.Empty;
+        branchC = string.Empty;
+        evaluation = string.Empty;
+        logMessages.Clear();
+
+        try
+        {
+            logMessages.Add($"🌳 Tree of Thoughts: exploring 3 branches for: \"{message}\"");
+            await InvokeAsync(StateHasChanged);
+
+            logMessages.Add("🔍 Exploring Branch A (Mathematical/Analytical)...");
+            await InvokeAsync(StateHasChanged);
+            branchA = (await agentBranch1.RunAsync(message)).ToString();
+
+            logMessages.Add("🔍 Exploring Branch B (Creative/Lateral)...");
+            await InvokeAsync(StateHasChanged);
+            branchB = (await agentBranch2.RunAsync(message)).ToString();
+
+            logMessages.Add("🔍 Exploring Branch C (Practical/Common-Sense)...");
+            await InvokeAsync(StateHasChanged);
+            branchC = (await agentBranch3.RunAsync(message)).ToString();
+
+            logMessages.Add("⚖️ Evaluating all branches and synthesizing Final Solution...");
+            await InvokeAsync(StateHasChanged);
+
+            var combinedInput = $"Problem: {message}\n\nApproach A (Mathematical/Analytical):\n{branchA}\n\nApproach B (Creative/Lateral):\n{branchB}\n\nApproach C (Practical/Common-Sense):\n{branchC}";
+            evaluation = (await agentEvaluator.RunAsync(combinedInput)).ToString();
+
+            logMessages.Add("✅ Tree of Thoughts complete.");
+        }
+        finally
+        {
+            isLoading = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+}

@@ -1,0 +1,170 @@
+@page "/agent19"
+@using Markdig
+@inject IConfiguration Configuration
+
+<PageTitle>Agent 19</PageTitle>
+<h1>Agent 19 - Graph of Thoughts</h1>
+<p class="lead">Builds a non-linear reasoning graph where thoughts can merge, branch, and reference each other to solve complex problems.</p>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-3">
+            <div class="card-header">Configuration</div>
+            <div class="card-body">
+                <div class="form-group mb-3">
+                    <label class="form-label fw-semibold">Message</label>
+                    <textarea class="form-control" rows="3" @bind="message"></textarea>
+                </div>
+                <button class="btn btn-primary me-2" @onclick="OnSubmit" disabled="@isLoading">
+                    @(isLoading ? "Running..." : "Submit")
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (logMessages.Count > 0)
+{
+    <div class="card mb-3">
+        <div class="card-header">Log — Graph Edges</div>
+        <div class="card-body">
+            <ul class="list-unstyled mb-0">
+                @foreach (var log in logMessages)
+                {
+                    <li class="small text-muted"><code>@log</code></li>
+                }
+            </ul>
+        </div>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(decomposed))
+{
+    <div class="card mb-3 border-secondary">
+        <div class="card-header bg-secondary text-white">Decomposer — Sub-problems</div>
+        <div class="card-body">
+            <p>@((MarkupString)RenderMarkdown(decomposed))</p>
+        </div>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(node1Result))
+{
+    <div class="card mb-3 border-primary">
+        <div class="card-header bg-primary text-white">Node 1 — Sub-problem 1 Solution</div>
+        <div class="card-body">
+            <p>@((MarkupString)RenderMarkdown(node1Result))</p>
+        </div>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(node2Result))
+{
+    <div class="card mb-3 border-success">
+        <div class="card-header bg-success text-white">Node 2 — Sub-problem 2 Solution</div>
+        <div class="card-body">
+            <p>@((MarkupString)RenderMarkdown(node2Result))</p>
+        </div>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(synthesis))
+{
+    <div class="card mb-3 border-warning">
+        <div class="card-header bg-warning text-dark">Synthesizer — Graph Synthesis</div>
+        <div class="card-body">
+            <p>@((MarkupString)RenderMarkdown(synthesis))</p>
+        </div>
+    </div>
+}
+
+@code {
+    private string message = "Design an AI system that can both understand medical images and explain its diagnoses to patients.";
+    private string modelName = "openai/gpt-4.1-nano";
+    private string endpoint = "https://openrouter.ai/api/v1";
+
+    private ChatClientAgent agentDecomposer = default!;
+    private ChatClientAgent agentNode1 = default!;
+    private ChatClientAgent agentNode2 = default!;
+    private ChatClientAgent agentSynthesizer = default!;
+
+    private string decomposed = string.Empty;
+    private string node1Result = string.Empty;
+    private string node2Result = string.Empty;
+    private string synthesis = string.Empty;
+
+    private bool isLoading = false;
+    private List<string> logMessages = [];
+
+    private string RenderMarkdown(string value)
+        => Markdown.ToHtml(value, new MarkdownPipelineBuilder().UseAdvancedExtensions().Build());
+
+    protected override Task OnInitializedAsync()
+    {
+        var apiKey = Configuration["OPEN_ROUTER_API_KEY"] ??
+            throw new InvalidOperationException("OPEN_ROUTER_API_KEY is not set.");
+        var openAIClientOptions = new OpenAIClientOptions { Endpoint = new Uri(endpoint) };
+        var credential = new ApiKeyCredential(apiKey);
+
+        var chatClient = new ChatClient(modelName, credential, openAIClientOptions);
+
+        agentDecomposer = chatClient.AsAIAgent(
+            instructions: "You are a problem decomposer. Break the given problem into exactly 2 independent sub-problems. Label them clearly as 'Sub-problem 1:' and 'Sub-problem 2:'. Be concise.",
+            name: "Decomposer");
+
+        agentNode1 = chatClient.AsAIAgent(
+            instructions: "You are a specialist solving Sub-problem 1. Solve only the first sub-problem from the input. Be direct and concise (2-3 sentences).",
+            name: "Node1");
+
+        agentNode2 = chatClient.AsAIAgent(
+            instructions: "You are a specialist solving Sub-problem 2. Solve only the second sub-problem from the input. Be direct and concise (2-3 sentences).",
+            name: "Node2");
+
+        agentSynthesizer = chatClient.AsAIAgent(
+            instructions: "You are a synthesis expert. You receive solutions to two sub-problems that were part of a larger problem. Merge these solutions into a cohesive final answer, showing how they connect in a reasoning graph. Start with 'Graph synthesis:'.",
+            name: "Synthesizer");
+
+        return base.OnInitializedAsync();
+    }
+
+    private async Task OnSubmit()
+    {
+        isLoading = true;
+        decomposed = string.Empty;
+        node1Result = string.Empty;
+        node2Result = string.Empty;
+        synthesis = string.Empty;
+        logMessages.Clear();
+
+        try
+        {
+            logMessages.Add("🕸️ Graph of Thoughts: Input → Decomposer → Node1, Node2 → Synthesizer → Output");
+            await InvokeAsync(StateHasChanged);
+
+            logMessages.Add("📐 Step 1: Input → Decomposer");
+            await InvokeAsync(StateHasChanged);
+            decomposed = (await agentDecomposer.RunAsync(message)).ToString();
+
+            logMessages.Add("🔷 Step 2: Decomposer → Node1 (Sub-problem 1)");
+            await InvokeAsync(StateHasChanged);
+            node1Result = (await agentNode1.RunAsync(decomposed)).ToString();
+
+            logMessages.Add("🔶 Step 3: Decomposer → Node2 (Sub-problem 2)");
+            await InvokeAsync(StateHasChanged);
+            node2Result = (await agentNode2.RunAsync(decomposed)).ToString();
+
+            logMessages.Add("🔗 Step 4: Node1 + Node2 → Synthesizer → Output");
+            await InvokeAsync(StateHasChanged);
+
+            var combinedInput = $"Original problem: {message}\n\nSub-problem 1 solution:\n{node1Result}\n\nSub-problem 2 solution:\n{node2Result}";
+            synthesis = (await agentSynthesizer.RunAsync(combinedInput)).ToString();
+
+            logMessages.Add("✅ Graph of Thoughts complete.");
+        }
+        finally
+        {
+            isLoading = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+}

@@ -1,0 +1,162 @@
+@page "/agent23"
+@using Markdig
+@inject IConfiguration Configuration
+
+<PageTitle>Agent 23</PageTitle>
+<h1>Agent 23 - Self-Refine</h1>
+<p class="lead">Iteratively improves its own output through multiple refinement rounds, each time incorporating feedback from its own critique.</p>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-3">
+            <div class="card-header">Configuration</div>
+            <div class="card-body">
+                <div class="form-group mb-3">
+                    <label class="form-label fw-semibold">Message</label>
+                    <textarea class="form-control" rows="3" @bind="message"></textarea>
+                </div>
+                <button class="btn btn-primary me-2" @onclick="OnSubmit" disabled="@isLoading">
+                    @(isLoading ? "Running..." : "Submit")
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (logMessages.Count > 0)
+{
+    <div class="card mb-3">
+        <div class="card-header">Log</div>
+        <div class="card-body">
+            <ul class="list-unstyled mb-0">
+                @foreach (var log in logMessages)
+                {
+                    <li class="small text-muted"><code>@log</code></li>
+                }
+            </ul>
+        </div>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(initialDraft))
+{
+    <div class="card mb-3 border-secondary">
+        <div class="card-header bg-secondary text-white">Initial Draft</div>
+        <div class="card-body">
+            <p>@((MarkupString)RenderMarkdown(initialDraft))</p>
+        </div>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(round1Refined))
+{
+    <div class="card mb-3 border-primary">
+        <div class="card-header bg-primary text-white">Round 1 Refined</div>
+        <div class="card-body">
+            <p>@((MarkupString)RenderMarkdown(round1Refined))</p>
+        </div>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(round2Refined))
+{
+    <div class="card mb-3 border-success">
+        <div class="card-header bg-success text-white">Round 2 Refined (Final)</div>
+        <div class="card-body">
+            <p>@((MarkupString)RenderMarkdown(round2Refined))</p>
+        </div>
+    </div>
+}
+
+@code {
+    private string message = "Write a brief explanation of machine learning for a high school student.";
+    private string modelName = "openai/gpt-4.1-nano";
+    private string endpoint = "https://openrouter.ai/api/v1";
+
+    private ChatClientAgent agentGenerator = default!;
+    private ChatClientAgent agentCritic = default!;
+    private ChatClientAgent agentRefiner = default!;
+
+    private string initialDraft = string.Empty;
+    private string round1Refined = string.Empty;
+    private string round2Refined = string.Empty;
+
+    private bool isLoading = false;
+    private List<string> logMessages = [];
+
+    private string RenderMarkdown(string value)
+        => Markdown.ToHtml(value, new MarkdownPipelineBuilder().UseAdvancedExtensions().Build());
+
+    protected override Task OnInitializedAsync()
+    {
+        var apiKey = Configuration["OPEN_ROUTER_API_KEY"] ??
+            throw new InvalidOperationException("OPEN_ROUTER_API_KEY is not set.");
+        var openAIClientOptions = new OpenAIClientOptions { Endpoint = new Uri(endpoint) };
+        var credential = new ApiKeyCredential(apiKey);
+
+        var chatClient = new ChatClient(modelName, credential, openAIClientOptions);
+
+        agentGenerator = chatClient.AsAIAgent(
+            instructions: "You are a content creator. Generate a high-quality response to the given request. Be thorough but concise.",
+            name: "Generator");
+
+        agentCritic = chatClient.AsAIAgent(
+            instructions: "You are a precise critic. Given a piece of content, provide targeted feedback in 3 bullet points only. Focus on the most impactful improvements. Be specific and actionable. Start each bullet with '•'.",
+            name: "Critic");
+
+        agentRefiner = chatClient.AsAIAgent(
+            instructions: "You are a content refiner. You receive original content and targeted feedback. Rewrite the content incorporating all the feedback. Output ONLY the improved content, no meta-commentary.",
+            name: "Refiner");
+
+        return base.OnInitializedAsync();
+    }
+
+    private async Task OnSubmit()
+    {
+        isLoading = true;
+        initialDraft = string.Empty;
+        round1Refined = string.Empty;
+        round2Refined = string.Empty;
+        logMessages.Clear();
+
+        try
+        {
+            // Round 1: Generate → Critique → Refine
+            logMessages.Add("✨ Self-Refine: Round 1 — Generate → Critique → Refine");
+            await InvokeAsync(StateHasChanged);
+
+            logMessages.Add("📝 Generating initial draft...");
+            await InvokeAsync(StateHasChanged);
+            initialDraft = (await agentGenerator.RunAsync(message)).ToString();
+
+            logMessages.Add("🔍 Round 1: Critiquing initial draft...");
+            await InvokeAsync(StateHasChanged);
+            var critique1 = (await agentCritic.RunAsync(initialDraft)).ToString();
+
+            logMessages.Add("✏️ Round 1: Refining based on critique...");
+            await InvokeAsync(StateHasChanged);
+            var refineInput1 = $"Original content:\n{initialDraft}\n\nFeedback to incorporate:\n{critique1}";
+            round1Refined = (await agentRefiner.RunAsync(refineInput1)).ToString();
+
+            // Round 2: Re-critique → Re-refine
+            logMessages.Add("✨ Self-Refine: Round 2 — Re-critique → Re-refine");
+            await InvokeAsync(StateHasChanged);
+
+            logMessages.Add("🔍 Round 2: Critiquing round 1 output...");
+            await InvokeAsync(StateHasChanged);
+            var critique2 = (await agentCritic.RunAsync(round1Refined)).ToString();
+
+            logMessages.Add("✏️ Round 2: Refining for final output...");
+            await InvokeAsync(StateHasChanged);
+            var refineInput2 = $"Original content:\n{round1Refined}\n\nFeedback to incorporate:\n{critique2}";
+            round2Refined = (await agentRefiner.RunAsync(refineInput2)).ToString();
+
+            logMessages.Add("✅ Self-Refine complete — 2 rounds of improvement applied.");
+        }
+        finally
+        {
+            isLoading = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+}

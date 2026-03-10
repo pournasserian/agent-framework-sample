@@ -1,0 +1,126 @@
+@page "/agent22"
+@using Markdig
+@inject IConfiguration Configuration
+
+<PageTitle>Agent 22</PageTitle>
+<h1>Agent 22 - Reflection / Self-Critique</h1>
+<p class="lead">The agent generates an initial response, then critically evaluates its own output for errors, gaps, and improvements.</p>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-3">
+            <div class="card-header">Configuration</div>
+            <div class="card-body">
+                <div class="form-group mb-3">
+                    <label class="form-label fw-semibold">Message</label>
+                    <textarea class="form-control" rows="3" @bind="message"></textarea>
+                </div>
+                <button class="btn btn-primary me-2" @onclick="OnSubmit" disabled="@isLoading">
+                    @(isLoading ? "Running..." : "Submit")
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@if (logMessages.Count > 0)
+{
+    <div class="card mb-3">
+        <div class="card-header">Log</div>
+        <div class="card-body">
+            <ul class="list-unstyled mb-0">
+                @foreach (var log in logMessages)
+                {
+                    <li class="small text-muted"><code>@log</code></li>
+                }
+            </ul>
+        </div>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(initialResponse))
+{
+    <div class="card mb-3 border-primary">
+        <div class="card-header bg-primary text-white">Initial Response</div>
+        <div class="card-body">
+            <p>@((MarkupString)RenderMarkdown(initialResponse))</p>
+        </div>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(critique))
+{
+    <div class="card mb-3 border-danger">
+        <div class="card-header bg-danger text-white">Self-Critique</div>
+        <div class="card-body">
+            <p>@((MarkupString)RenderMarkdown(critique))</p>
+        </div>
+    </div>
+}
+
+@code {
+    private string message = "Explain the concept of quantum entanglement and its potential applications.";
+    private string modelName = "openai/gpt-4.1-nano";
+    private string endpoint = "https://openrouter.ai/api/v1";
+
+    private ChatClientAgent agentResponder = default!;
+    private ChatClientAgent agentCritic = default!;
+
+    private string initialResponse = string.Empty;
+    private string critique = string.Empty;
+
+    private bool isLoading = false;
+    private List<string> logMessages = [];
+
+    private string RenderMarkdown(string value)
+        => Markdown.ToHtml(value, new MarkdownPipelineBuilder().UseAdvancedExtensions().Build());
+
+    protected override Task OnInitializedAsync()
+    {
+        var apiKey = Configuration["OPEN_ROUTER_API_KEY"] ??
+            throw new InvalidOperationException("OPEN_ROUTER_API_KEY is not set.");
+        var openAIClientOptions = new OpenAIClientOptions { Endpoint = new Uri(endpoint) };
+        var credential = new ApiKeyCredential(apiKey);
+
+        var chatClient = new ChatClient(modelName, credential, openAIClientOptions);
+
+        agentResponder = chatClient.AsAIAgent(
+            instructions: "You are a helpful assistant. Answer the question directly and thoroughly. Provide your best initial response.",
+            name: "Responder");
+
+        agentCritic = chatClient.AsAIAgent(
+            instructions: "You are a rigorous self-critic. You will receive an initial response to a question. Critically evaluate it by:\n1. Identifying potential errors or inaccuracies\n2. Noting any missing important points\n3. Suggesting specific improvements\n4. Rating the response quality (1-10)\n\nFormat your critique with clear sections: 'Errors Found:', 'Missing Points:', 'Suggested Improvements:', 'Quality Rating:'",
+            name: "Critic");
+
+        return base.OnInitializedAsync();
+    }
+
+    private async Task OnSubmit()
+    {
+        isLoading = true;
+        initialResponse = string.Empty;
+        critique = string.Empty;
+        logMessages.Clear();
+
+        try
+        {
+            logMessages.Add("🪞 Reflection: Step 1 — generating initial response...");
+            await InvokeAsync(StateHasChanged);
+
+            initialResponse = (await agentResponder.RunAsync(message)).ToString();
+
+            logMessages.Add("🔍 Reflection: Step 2 — applying self-critique...");
+            await InvokeAsync(StateHasChanged);
+
+            var criticInput = $"Question: {message}\n\nInitial Response:\n{initialResponse}\n\nPlease critique this response.";
+            critique = (await agentCritic.RunAsync(criticInput)).ToString();
+
+            logMessages.Add("✅ Reflection complete.");
+        }
+        finally
+        {
+            isLoading = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+}
