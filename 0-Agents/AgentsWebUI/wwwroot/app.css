@@ -895,7 +895,7 @@ code {
     border-radius: var(--radius-sm);
 }
 
-pre {
+.code-block {
     font-family: var(--font-family-mono);
     font-size: var(--font-size-sm);
     background-color: var(--color-gray-900);
@@ -908,7 +908,7 @@ pre {
     margin: var(--space-3) 0;
 }
 
-pre code {
+.code-block code {
     color: inherit;
     background: none;
     padding: 0;
