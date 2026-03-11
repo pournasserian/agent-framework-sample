@@ -1,5 +1,6 @@
 ﻿@page "/agent08"
 @inject IConfiguration Configuration
+@inject IWebHostEnvironment WebHostEnvironment
 
 <PageTitle>Agent 08 – Agent Using Image</PageTitle>
 
@@ -111,7 +112,7 @@
         isLoading = true;
         // Load image binary from local image file at wwwroot/image.jpg
 
-        var imageData = await File.ReadAllBytesAsync("wwwroot/image.jpg");
+        var imageData = await File.ReadAllBytesAsync(Path.Combine(WebHostEnvironment.WebRootPath, "image.jpg"));
         var imageContent = new DataContent(imageData, "image/jpeg");
 
         var chatMessage = new Microsoft.Extensions.AI.ChatMessage(ChatRole.User,
