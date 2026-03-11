@@ -115,8 +115,8 @@
         log = string.Empty;
         isLoading = true;
 
-        var apiKey = Configuration["OPEN_ROUTER_API_KEY"] ??
-            throw new InvalidOperationException("OPEN_ROUTER_API_KEY is not set in.");
+        var apiKey = Configuration["OpenRouter:ApiKey"] ?? Configuration["OPEN_ROUTER_API_KEY"] ??
+            throw new InvalidOperationException("OpenRouter:ApiKey (or OPEN_ROUTER_API_KEY) is not configured.");
 
         var openAIClientOptions = new OpenAIClientOptions
         {
@@ -164,8 +164,8 @@
         foreach (var t in mcpTools)
             log += $"Tool: {t.Title}- {t.Name} <br /> {JsonSerializer.Serialize(t.AdditionalProperties)} <hr />";
 
-        var apiKey = Configuration["OPEN_ROUTER_API_KEY"] ??
-            throw new InvalidOperationException("OPEN_ROUTER_API_KEY is not set in.");
+        var apiKey = Configuration["OpenRouter:ApiKey"] ?? Configuration["OPEN_ROUTER_API_KEY"] ??
+            throw new InvalidOperationException("OpenRouter:ApiKey (or OPEN_ROUTER_API_KEY) is not configured.");
 
         var openAIClientOptions = new OpenAIClientOptions
         {
