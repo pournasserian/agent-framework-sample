@@ -2,44 +2,88 @@
 @inject IConfiguration Configuration
 
 
-<PageTitle>Agent 11</PageTitle>
+<PageTitle>Agent 11 – Chat Reduction</PageTitle>
 
-<h1>Agent 11 - Chat Reduction</h1>
-
-<p>Applies chat reduction techniques with MessageCountingChatReducer, limiting stored conversation history to maintain efficient context.</p>
-
-<div class="form-group mb-3">
-    <label>Instructions</label>
-    <InputTextArea @bind-Value="instructions" class="form-control" style="height:300px"></InputTextArea>
-</div>
-<div class="form-group mb-3">
-    <label>Message</label>
-    <InputTextArea @bind-Value="message" class="form-control"></InputTextArea>
-</div>
-<div class="form-group mb-3">
-
-    <button type="submit" class="btn btn-primary" disabled="@isLoading" onclick="@OnSubmit">Submit</button>
-    <button type="submit" class="btn btn-primary" disabled="@isLoading" onclick="@OnSubmitStream">Stream</button>
+<div class="page-header">
+    <h1 class="page-title">⚡ Agent 11 – Chat Reduction</h1>
+    <p class="page-subtitle">Applies chat reduction techniques with MessageCountingChatReducer, limiting stored conversation history to maintain efficient context.</p>
 </div>
 
-@if (!string.IsNullOrEmpty(response))
-{
+<div class="agent-layout layout-4-8">
+
+    <!-- Left: Config Panel -->
     <div>
-        <div class="mb-3 card">
+        <div class="card panel panel-config mb-4">
+            <div class="card-header">⚙️ Configuration</div>
             <div class="card-body">
-                <h5 class="card-title">Response</h5>
-                <p class="card-text">@((MarkupString)RenderMarkdown(@response))</p>
+                <div class="mb-3">
+                    <label class="form-label">Instructions</label>
+                    <InputTextArea @bind-Value="instructions" class="form-control instructions-input" style="min-height: 300px;"></InputTextArea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">First Message</label>
+                    <InputTextArea @bind-Value="message" class="form-control message-input"></InputTextArea>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-warning" disabled="@isLoading" @onclick="OnSubmit">
+                        @(isLoading ? "Running..." : "🚀 Submit / Continue")
+                    </button>
+                    <button class="btn btn-outline-warning" disabled="@isLoading" @onclick="OnSubmitStream">
+                        @(isLoading ? "Streaming..." : "📡 Stream / Continue")
+                    </button>
+                </div>
             </div>
         </div>
-        <div class="mb-3 card">
-            <div class="card-body">
-                <h5 class="card-title">Log</h5>
-                <p class="card-text">@((MarkupString)log)</p>
-            </div>
+        <div class="alert alert-warning">
+            ⚡ Uses <code>MessageCountingChatReducer(2)</code> — only the last 2 messages are kept in context. Click Submit multiple times to see the reduction effect.
         </div>
     </div>
 
-}
+    <!-- Right: Result + Log Panels -->
+    <div>
+        @if (isLoading && string.IsNullOrEmpty(response))
+        {
+            <div class="card panel panel-result mb-4">
+                <div class="card-header">💬 Conversation</div>
+                <div class="card-body">
+                    <p class="response-pending">
+                        <span class="streaming-indicator" aria-label="Processing">
+                            <span></span><span></span><span></span>
+                        </span>
+                        Generating conversation...
+                    </p>
+                </div>
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(response))
+        {
+            <div class="card panel panel-result mb-4">
+                <div class="card-header">
+                    💬 Conversation
+                    @if (isLoading)
+                    {
+                        <span class="streaming-indicator ms-2" aria-label="Streaming">
+                            <span></span><span></span><span></span>
+                        </span>
+                    }
+                </div>
+                <div class="card-body">
+                    <div class="response-text">@((MarkupString)RenderMarkdown(@response))</div>
+                </div>
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(log))
+        {
+            <div class="card panel panel-log mb-4">
+                <div class="card-header">📋 Reduction Log</div>
+                <div class="card-body">
+                    <div class="response-text">@((MarkupString)log)</div>
+                </div>
+            </div>
+        }
+    </div>
+
+</div>
 
 @code {
 #pragma warning disable MEAI001

@@ -1,50 +1,94 @@
 ﻿@page "/agent06"
 @inject IConfiguration Configuration
 
-<PageTitle>Agent 06</PageTitle>
+<PageTitle>Agent 06 – Persisted Conversation</PageTitle>
 
-<h1>Agent 06 - Persisted Conversation</h1>
-
-<p>Shows thread persistence through serialization and deserialization, saving conversation state to temporary files and resuming multi-turn dialogues.</p>
-
-<div class="form-group mb-3">
-    <label>Instructions</label>
-    <InputTextArea @bind-Value="instructions" class="form-control"></InputTextArea>
-</div>
-<div class="form-group mb-3">
-    <label>Message</label>
-    <InputTextArea @bind-Value="message" class="form-control"></InputTextArea>
-</div>
-<div class="form-group mb-3">
-    <button type="submit" class="btn btn-primary" disabled="@isLoading" onclick="@OnSubmit">Submit</button>
-    <button type="submit" class="btn btn-primary" disabled="@isLoading" onclick="@OnSubmitStream">Stream</button>
+<div class="page-header">
+    <h1 class="page-title">💾 Agent 06 – Persisted Conversation</h1>
+    <p class="page-subtitle">Shows thread persistence through serialization and deserialization, saving conversation state to temporary files and resuming multi-turn dialogues.</p>
 </div>
 
-@if (!string.IsNullOrEmpty(response))
-{
-    <div class="mw-100">
-        <div class="mb-3 card">
+<div class="agent-layout layout-4-8">
+
+    <!-- Left: Config Panel -->
+    <div>
+        <div class="card panel panel-config mb-4">
+            <div class="card-header">⚙️ Configuration</div>
             <div class="card-body">
-                <h5 class="card-title">Response</h5>
-                <p class="card-text">@((MarkupString)@response)</p>
-            </div>
-        </div>
-        <div class="mb-3 card">
-            <div class="card-body">
-                <h5 class="card-title">Log</h5>
-                <p class="card-text">@((MarkupString)log)</p>
-            </div>
-        </div>
-        <div class="mb-3 card">
-            <div class="card-body mw-100">
-                <h5 class="card-title">Thread</h5>
-                <pre class="mw-100"> 
-                    <code class="text-break">@threadLog</code>
-                </pre>
+                <div class="mb-3">
+                    <label class="form-label">Instructions</label>
+                    <InputTextArea @bind-Value="instructions" class="form-control instructions-input"></InputTextArea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Message</label>
+                    <InputTextArea @bind-Value="message" class="form-control message-input"></InputTextArea>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-primary" disabled="@isLoading" @onclick="OnSubmit">
+                        @(isLoading ? "Running..." : "🚀 Submit")
+                    </button>
+                    <button class="btn btn-outline-primary" disabled="@isLoading" @onclick="OnSubmitStream">
+                        @(isLoading ? "Streaming..." : "📡 Stream")
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-}
+
+    <!-- Right: Result + Log + Thread Panels -->
+    <div>
+        @if (isLoading && string.IsNullOrEmpty(response))
+        {
+            <div class="card panel panel-result mb-4">
+                <div class="card-header">💬 Response</div>
+                <div class="card-body">
+                    <p class="response-pending">
+                        <span class="streaming-indicator" aria-label="Processing">
+                            <span></span><span></span><span></span>
+                        </span>
+                        Processing conversation...
+                    </p>
+                </div>
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(response))
+        {
+            <div class="card panel panel-result mb-4">
+                <div class="card-header">
+                    💬 Response
+                    @if (isLoading)
+                    {
+                        <span class="streaming-indicator ms-2" aria-label="Streaming">
+                            <span></span><span></span><span></span>
+                        </span>
+                    }
+                </div>
+                <div class="card-body">
+                    <div class="response-text">@((MarkupString)@response)</div>
+                </div>
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(log))
+        {
+            <div class="card panel panel-log mb-4">
+                <div class="card-header">📋 Persistence Log</div>
+                <div class="card-body">
+                    <div class="response-text">@((MarkupString)log)</div>
+                </div>
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(threadLog))
+        {
+            <div class="card panel panel-thread mb-4">
+                <div class="card-header">🧵 Thread State (JSON)</div>
+                <div class="card-body">
+                    <pre class="thread-log">@threadLog</pre>
+                </div>
+            </div>
+        }
+    </div>
+
+</div>
 
 @code {
     private string message = "Tell me a short joke about a pirate.";

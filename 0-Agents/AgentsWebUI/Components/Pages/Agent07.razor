@@ -2,50 +2,97 @@
 @inject IConfiguration Configuration
 @using Microsoft.Extensions.VectorData
 
-<PageTitle>Agent 07</PageTitle>
+<PageTitle>Agent 07 – Custom Thread Storage</PageTitle>
 
-<h1>Agent 07 - Custom Thread Storage</h1>
-
-<p>Demonstrates custom thread storage with VectorChatMessageStore, persisting conversation history in an in-memory vector store for scalable context management.</p>
-
-<div class="form-group mb-3">
-    <label>Instructions</label>
-    <InputTextArea @bind-Value="instructions" class="form-control"></InputTextArea>
-</div>
-<div class="form-group mb-3">
-    <label>Message</label>
-    <InputTextArea @bind-Value="message" class="form-control"></InputTextArea>
-</div>
-<div class="form-group mb-3">
-    <button type="submit" class="btn btn-primary" disabled="@isLoading" onclick="@OnSubmit">Submit</button>
-    <button type="submit" class="btn btn-primary" disabled="@isLoading" onclick="@OnSubmitStream">Stream</button>
+<div class="page-header">
+    <h1 class="page-title">🗄️ Agent 07 – Custom Thread Storage</h1>
+    <p class="page-subtitle">Demonstrates custom thread storage with VectorChatMessageStore, persisting conversation history in an in-memory vector store for scalable context management.</p>
 </div>
 
-@if (!string.IsNullOrEmpty(response))
-{
-    <div class="mw-100">
-        <div class="mb-3 card">
+<div class="agent-layout layout-4-8">
+
+    <!-- Left: Config Panel -->
+    <div>
+        <div class="card panel panel-config mb-4">
+            <div class="card-header">⚙️ Configuration</div>
             <div class="card-body">
-                <h5 class="card-title">Response</h5>
-                <p class="card-text">@((MarkupString)@response)</p>
+                <div class="mb-3">
+                    <label class="form-label">Instructions</label>
+                    <InputTextArea @bind-Value="instructions" class="form-control instructions-input"></InputTextArea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Message</label>
+                    <InputTextArea @bind-Value="message" class="form-control message-input"></InputTextArea>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-info-teal" disabled="@isLoading" @onclick="OnSubmit">
+                        @(isLoading ? "Running..." : "🚀 Submit")
+                    </button>
+                    <button class="btn btn-outline-secondary" disabled="@isLoading" @onclick="OnSubmitStream">
+                        @(isLoading ? "Streaming..." : "📡 Stream")
+                    </button>
+                </div>
             </div>
         </div>
-        <div class="mb-3 card">
-            <div class="card-body">
-                <h5 class="card-title">Log</h5>
-                <p class="card-text">@((MarkupString)log)</p>
-            </div>
-        </div>
-        <div class="mb-3 card">
-            <div class="card-body mw-100">
-                <h5 class="card-title">Thread</h5>
-                <pre class="mw-100"> 
-                    <code class="text-break">@threadLog</code>
-                </pre>
-            </div>
+        <div class="alert alert-info">
+            🧠 Uses an <strong>in-memory vector store</strong> as a custom <code>ChatHistoryProvider</code> for session storage.
         </div>
     </div>
-}
+
+    <!-- Right: Result + Log + Thread Panels -->
+    <div>
+        @if (isLoading && string.IsNullOrEmpty(response))
+        {
+            <div class="card panel panel-result mb-4">
+                <div class="card-header">💬 Response</div>
+                <div class="card-body">
+                    <p class="response-pending">
+                        <span class="streaming-indicator" aria-label="Processing">
+                            <span></span><span></span><span></span>
+                        </span>
+                        Processing with vector storage...
+                    </p>
+                </div>
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(response))
+        {
+            <div class="card panel panel-result mb-4">
+                <div class="card-header">
+                    💬 Response
+                    @if (isLoading)
+                    {
+                        <span class="streaming-indicator ms-2" aria-label="Streaming">
+                            <span></span><span></span><span></span>
+                        </span>
+                    }
+                </div>
+                <div class="card-body">
+                    <div class="response-text">@((MarkupString)@response)</div>
+                </div>
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(log))
+        {
+            <div class="card panel panel-log mb-4">
+                <div class="card-header">📋 Vector Store Log</div>
+                <div class="card-body">
+                    <div class="response-text">@((MarkupString)log)</div>
+                </div>
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(threadLog))
+        {
+            <div class="card panel panel-thread mb-4">
+                <div class="card-header">🧵 Thread State (JSON)</div>
+                <div class="card-body">
+                    <pre class="thread-log">@threadLog</pre>
+                </div>
+            </div>
+        }
+    </div>
+
+</div>
 
 @code {
     private string message = "Tell me a short joke about a pirate.";

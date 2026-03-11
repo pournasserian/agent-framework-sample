@@ -2,81 +2,107 @@
 @using Markdig
 @inject IConfiguration Configuration
 
-<PageTitle>Agent 18</PageTitle>
-<h1>Agent 18 - Tree of Thoughts</h1>
-<p class="lead">Explores multiple reasoning branches simultaneously, evaluates each path, and selects the most promising solution.</p>
+<PageTitle>Agent 18 – Tree of Thoughts</PageTitle>
 
-<div class="row">
-    <div class="col-md-8">
-        <div class="card mb-3">
-            <div class="card-header">Configuration</div>
+<div class="page-header">
+    <h1 class="page-title">🩷 Agent 18 – Tree of Thoughts</h1>
+    <p class="page-subtitle">Explores multiple reasoning branches simultaneously, evaluates each path, and selects the most promising solution.</p>
+</div>
+
+<div class="alert alert-info mb-4">
+    <strong>💡 Tree of Thoughts (ToT):</strong> A prompting strategy that creates a tree-shaped reasoning structure by spawning multiple independent thought branches. Each branch explores a different perspective or approach, and an evaluator agent synthesises the best elements into a final solution.
+</div>
+
+<div class="agent-layout layout-4-8">
+
+    <!-- Left: Config Panel -->
+    <div>
+        <div class="card panel panel-config mb-4">
+            <div class="card-header">⚙️ Configuration</div>
             <div class="card-body">
-                <div class="form-group mb-3">
-                    <label class="form-label fw-semibold">Message</label>
-                    <textarea class="form-control" rows="3" @bind="message"></textarea>
+                <div class="mb-3">
+                    <label class="form-label">Problem / Question</label>
+                    <textarea class="form-control message-input" @bind="message"></textarea>
                 </div>
-                <button class="btn btn-primary me-2" @onclick="OnSubmit" disabled="@isLoading">
-                    @(isLoading ? "Running..." : "Submit")
+                <div class="mb-2 small text-muted">
+                    Spawns 3 branches: <span class="badge badge-primary">Analytical</span> <span class="badge badge-success">Creative</span> <span class="badge badge-primary">Practical</span>
+                </div>
+                <button class="btn" style="background-color:#e83e8c;color:white;" @onclick="OnSubmit" disabled="@isLoading">
+                    @(isLoading ? "Running..." : "🌳 Run Tree of Thoughts")
                 </button>
             </div>
         </div>
+        @if (logMessages.Count > 0)
+        {
+            <div class="card panel panel-log mb-4">
+                <div class="card-header">📋 Execution Log</div>
+                <div class="card-body">
+                    <ul class="log-list mb-0">
+                        @foreach (var log in logMessages)
+                        {
+                            <li><code>@log</code></li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        }
     </div>
+
+    <!-- Right: Result Panel -->
+    <div>
+        @if (isLoading && string.IsNullOrEmpty(branchA))
+        {
+            <div class="card panel panel-result mb-4">
+                <div class="card-header">🌳 Exploring Branches...</div>
+                <div class="card-body">
+                    <p class="response-pending">
+                        <span class="streaming-indicator" aria-label="Processing">
+                            <span></span><span></span><span></span>
+                        </span>
+                        Spawning thought branches...
+                    </p>
+                </div>
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(branchA))
+        {
+            <div class="card panel panel-result mb-3">
+                <div class="card-header">🔵 Branch A — Mathematical/Analytical</div>
+                <div class="card-body">
+                    <div class="response-text">@((MarkupString)RenderMarkdown(branchA))</div>
+                </div>
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(branchB))
+        {
+            <div class="card panel panel-result mb-3" style="border-color: var(--color-success);">
+                <div class="card-header" style="background-color: var(--color-success); color: white;">🟢 Branch B — Creative/Lateral</div>
+                <div class="card-body">
+                    <div class="response-text">@((MarkupString)RenderMarkdown(branchB))</div>
+                </div>
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(branchC))
+        {
+            <div class="card panel panel-result mb-3" style="border-color: var(--color-info);">
+                <div class="card-header" style="background-color: var(--color-info); color: white;">🔷 Branch C — Practical/Common-Sense</div>
+                <div class="card-body">
+                    <div class="response-text">@((MarkupString)RenderMarkdown(branchC))</div>
+                </div>
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(evaluation))
+        {
+            <div class="card panel panel-result mb-4" style="border-color: var(--color-warning);">
+                <div class="card-header" style="background-color: var(--color-warning); color: #212529;">⚖️ Evaluation &amp; Final Solution</div>
+                <div class="card-body">
+                    <div class="response-text">@((MarkupString)RenderMarkdown(evaluation))</div>
+                </div>
+            </div>
+        }
+    </div>
+
 </div>
-
-@if (logMessages.Count > 0)
-{
-    <div class="card mb-3">
-        <div class="card-header">Log</div>
-        <div class="card-body">
-            <ul class="list-unstyled mb-0">
-                @foreach (var log in logMessages)
-                {
-                    <li class="small text-muted"><code>@log</code></li>
-                }
-            </ul>
-        </div>
-    </div>
-}
-
-@if (!string.IsNullOrEmpty(branchA))
-{
-    <div class="card mb-3 border-primary">
-        <div class="card-header bg-primary text-white">Branch A — Mathematical/Analytical</div>
-        <div class="card-body">
-            <p>@((MarkupString)RenderMarkdown(branchA))</p>
-        </div>
-    </div>
-}
-
-@if (!string.IsNullOrEmpty(branchB))
-{
-    <div class="card mb-3 border-success">
-        <div class="card-header bg-success text-white">Branch B — Creative/Lateral</div>
-        <div class="card-body">
-            <p>@((MarkupString)RenderMarkdown(branchB))</p>
-        </div>
-    </div>
-}
-
-@if (!string.IsNullOrEmpty(branchC))
-{
-    <div class="card mb-3 border-info">
-        <div class="card-header bg-info text-white">Branch C — Practical/Common-Sense</div>
-        <div class="card-body">
-            <p>@((MarkupString)RenderMarkdown(branchC))</p>
-        </div>
-    </div>
-}
-
-@if (!string.IsNullOrEmpty(evaluation))
-{
-    <div class="card mb-3 border-warning">
-        <div class="card-header bg-warning text-dark">Evaluation &amp; Final Solution</div>
-        <div class="card-body">
-            <p>@((MarkupString)RenderMarkdown(evaluation))</p>
-        </div>
-    </div>
-}
 
 @code {
     private string message = "How would you approach building a sustainable city transportation system?";

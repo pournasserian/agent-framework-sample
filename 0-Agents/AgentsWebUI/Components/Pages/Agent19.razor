@@ -2,81 +2,107 @@
 @using Markdig
 @inject IConfiguration Configuration
 
-<PageTitle>Agent 19</PageTitle>
-<h1>Agent 19 - Graph of Thoughts</h1>
-<p class="lead">Builds a non-linear reasoning graph where thoughts can merge, branch, and reference each other to solve complex problems.</p>
+<PageTitle>Agent 19 – Graph of Thoughts</PageTitle>
 
-<div class="row">
-    <div class="col-md-8">
-        <div class="card mb-3">
-            <div class="card-header">Configuration</div>
+<div class="page-header">
+    <h1 class="page-title">🩷 Agent 19 – Graph of Thoughts</h1>
+    <p class="page-subtitle">Builds a non-linear reasoning graph where thoughts can merge, branch, and reference each other to solve complex problems.</p>
+</div>
+
+<div class="alert alert-info mb-4">
+    <strong>💡 Graph of Thoughts (GoT):</strong> A prompting strategy that models reasoning as a directed graph. A decomposer breaks the problem into sub-problems (nodes), specialist agents solve each node in parallel, and a synthesizer merges the solutions along graph edges into a final answer.
+</div>
+
+<div class="agent-layout layout-4-8">
+
+    <!-- Left: Config Panel -->
+    <div>
+        <div class="card panel panel-config mb-4">
+            <div class="card-header">⚙️ Configuration</div>
             <div class="card-body">
-                <div class="form-group mb-3">
-                    <label class="form-label fw-semibold">Message</label>
-                    <textarea class="form-control" rows="3" @bind="message"></textarea>
+                <div class="mb-3">
+                    <label class="form-label">Problem / Question</label>
+                    <textarea class="form-control message-input" @bind="message"></textarea>
                 </div>
-                <button class="btn btn-primary me-2" @onclick="OnSubmit" disabled="@isLoading">
-                    @(isLoading ? "Running..." : "Submit")
+                <div class="mb-2 small text-muted">
+                    Graph: <code>Input → Decomposer → Node1, Node2 → Synthesizer → Output</code>
+                </div>
+                <button class="btn" style="background-color:#e83e8c;color:white;" @onclick="OnSubmit" disabled="@isLoading">
+                    @(isLoading ? "Running..." : "🕸️ Run Graph of Thoughts")
                 </button>
             </div>
         </div>
+        @if (logMessages.Count > 0)
+        {
+            <div class="card panel panel-log mb-4">
+                <div class="card-header">📋 Graph Edges Log</div>
+                <div class="card-body">
+                    <ul class="log-list mb-0">
+                        @foreach (var log in logMessages)
+                        {
+                            <li><code>@log</code></li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        }
     </div>
+
+    <!-- Right: Result Panel -->
+    <div>
+        @if (isLoading && string.IsNullOrEmpty(decomposed))
+        {
+            <div class="card panel panel-result mb-4">
+                <div class="card-header">🕸️ Building Graph...</div>
+                <div class="card-body">
+                    <p class="response-pending">
+                        <span class="streaming-indicator" aria-label="Processing">
+                            <span></span><span></span><span></span>
+                        </span>
+                        Decomposing into sub-problems...
+                    </p>
+                </div>
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(decomposed))
+        {
+            <div class="card panel panel-result mb-3">
+                <div class="card-header">📐 Decomposer — Sub-problems</div>
+                <div class="card-body">
+                    <div class="response-text">@((MarkupString)RenderMarkdown(decomposed))</div>
+                </div>
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(node1Result))
+        {
+            <div class="card panel panel-result mb-3">
+                <div class="card-header">🔷 Node 1 — Sub-problem 1 Solution</div>
+                <div class="card-body">
+                    <div class="response-text">@((MarkupString)RenderMarkdown(node1Result))</div>
+                </div>
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(node2Result))
+        {
+            <div class="card panel panel-result mb-3" style="border-color: var(--color-success);">
+                <div class="card-header" style="background-color: var(--color-success); color: white;">🔶 Node 2 — Sub-problem 2 Solution</div>
+                <div class="card-body">
+                    <div class="response-text">@((MarkupString)RenderMarkdown(node2Result))</div>
+                </div>
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(synthesis))
+        {
+            <div class="card panel panel-result mb-4" style="border-color: var(--color-warning);">
+                <div class="card-header" style="background-color: var(--color-warning); color: #212529;">🔗 Synthesizer — Graph Synthesis</div>
+                <div class="card-body">
+                    <div class="response-text">@((MarkupString)RenderMarkdown(synthesis))</div>
+                </div>
+            </div>
+        }
+    </div>
+
 </div>
-
-@if (logMessages.Count > 0)
-{
-    <div class="card mb-3">
-        <div class="card-header">Log — Graph Edges</div>
-        <div class="card-body">
-            <ul class="list-unstyled mb-0">
-                @foreach (var log in logMessages)
-                {
-                    <li class="small text-muted"><code>@log</code></li>
-                }
-            </ul>
-        </div>
-    </div>
-}
-
-@if (!string.IsNullOrEmpty(decomposed))
-{
-    <div class="card mb-3 border-secondary">
-        <div class="card-header bg-secondary text-white">Decomposer — Sub-problems</div>
-        <div class="card-body">
-            <p>@((MarkupString)RenderMarkdown(decomposed))</p>
-        </div>
-    </div>
-}
-
-@if (!string.IsNullOrEmpty(node1Result))
-{
-    <div class="card mb-3 border-primary">
-        <div class="card-header bg-primary text-white">Node 1 — Sub-problem 1 Solution</div>
-        <div class="card-body">
-            <p>@((MarkupString)RenderMarkdown(node1Result))</p>
-        </div>
-    </div>
-}
-
-@if (!string.IsNullOrEmpty(node2Result))
-{
-    <div class="card mb-3 border-success">
-        <div class="card-header bg-success text-white">Node 2 — Sub-problem 2 Solution</div>
-        <div class="card-body">
-            <p>@((MarkupString)RenderMarkdown(node2Result))</p>
-        </div>
-    </div>
-}
-
-@if (!string.IsNullOrEmpty(synthesis))
-{
-    <div class="card mb-3 border-warning">
-        <div class="card-header bg-warning text-dark">Synthesizer — Graph Synthesis</div>
-        <div class="card-body">
-            <p>@((MarkupString)RenderMarkdown(synthesis))</p>
-        </div>
-    </div>
-}
 
 @code {
     private string message = "Design an AI system that can both understand medical images and explain its diagnoses to patients.";

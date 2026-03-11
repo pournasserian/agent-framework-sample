@@ -1,91 +1,170 @@
-# Microsoft Agent Framework with Blazor Web App
+# Microsoft Agent Framework Samples
 
-This project demonstrates the usage of the Microsoft Agent Framework in a Blazor Web Application. It includes several sample agents, each showcasing a different feature of the framework.
+A **Blazor Web Application** built on **.NET 10** that showcases **23 interactive samples** demonstrating the [Microsoft Agent Framework](https://learn.microsoft.com/en-us/dotnet/ai/microsoft-extensions-ai) (`Microsoft.Extensions.AI.Agents`) across **6 categories** — from basic request/response through advanced prompting strategies.
 
-## How to Use
+> **Live Demo**: Run the app and navigate to `http://localhost:5xxx` to explore the interactive samples.
 
-### Prerequisites
+---
 
-*   [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0) or later.
-*   An API key from [OpenRouter](https://openrouter.ai/).
+## ✨ Features
 
-### Configuration
+- 23 interactive agent samples organized in 6 categories
+- Modern, responsive UI built with Bootstrap 5 and a central CSS design system
+- Real-time streaming responses
+- Multi-turn conversation threads
+- Function/tool calling with and without user approval
+- Structured JSON output extraction
+- Persisted conversation storage
+- Multimodal image analysis
+- Remote MCP (Model Context Protocol) server integration
+- Background/async response processing
+- Middleware pipeline (logging, function override, content redaction)
+- Declarative agent configuration via YAML
+- Advanced reasoning with OpenAI o4-mini
+- 7 prompting strategy demonstrations (CoT, ToT, GoT, PoT, ReAct, Reflection, Self-Refine)
 
-1.  Open the `0-Agents/AgentsWebUI/appsettings.json` file.
-2.  Add your OpenRouter API key to the file:
+---
 
-    ```json
-    {
-      "Logging": {
-        "LogLevel": {
-          "Default": "Information",
-          "Microsoft.AspNetCore": "Warning"
-        }
-      },
-      "AllowedHosts": "*",
-      "OPEN_ROUTER_API_KEY": "YOUR_API_KEY_HERE"
-    }
-    ```
-3. Alternatively, you can set the `OPEN_ROUTER_API_KEY` as an environment variable.
+## 🛠 Technology Stack
 
-### Running the Application
+| Technology | Details |
+|---|---|
+| **.NET 10 / Blazor Web App** | Server-Side Rendering + Interactive Server components |
+| **Microsoft Agent Framework** | `Microsoft.Extensions.AI.Agents` |
+| **Bootstrap 5** | Responsive UI framework |
+| **OpenAI API (via OpenRouter)** | OpenAI-compatible model access |
+| **Semantic Kernel** | Plugin and middleware integration samples |
 
-1.  Navigate to the `0-Agents/AgentsWebUI` directory in your terminal.
-2.  Run the following command:
+---
 
-    ```bash
-    dotnet run
-    ```
-3.  Open your browser and navigate to the URL provided in the terminal output (usually `http://localhost:5xxx`).
+## 📋 Prerequisites
 
-## Agent Samples
+- [.NET 10 SDK](https://dotnet.microsoft.com/download/dotnet/10.0)
+- An API key from [OpenRouter](https://openrouter.ai/) (supports OpenAI-compatible models)
 
-Here are the available agent samples:
+---
 
-### Agent 01 - Basic Agent
-This agent demonstrates the basic functionality of creating and running an agent. It takes instructions and a message as input and returns a response from the AI model. It shows both a simple request/response and a streaming response.
+## ⚙️ Configuration
 
-### Agent 02 - Agent with Thread
-This sample showcases how to use threads to have a multi-turn conversation with an agent. The agent remembers the context of the previous messages in the same thread.
+Set your OpenRouter API key using **one** of the following methods:
 
-### Agent 03 - Agent with Function/Tool
-This agent demonstrates how to provide functions (tools) to an agent. In this example, the agent uses `Add` and `Multiply` functions to solve a math problem that it wouldn't be able to solve on its own.
+### Option 1 — `appsettings.json`
 
-### Agent 04 - Functions with User Approval
-This agent builds upon the previous example by adding a user approval step before a function is executed. The agent asks for confirmation from the user before calling the `Add` or `Multiply` functions.
+Edit `0-Agents/AgentsWebUI/appsettings.json`:
 
-### Agent 05 - Structured Output
-This sample shows how to get structured data (JSON) from an unstructured text input. The agent extracts information about a person into a `PersonInfo` object.
+```json
+{
+  "OpenRouter": {
+    "ApiKey": "your-api-key-here"
+  }
+}
+```
 
-### Agent 06 - Persisted Conversation
-This agent demonstrates how to persist and resume a conversation. The conversation thread is serialized to a file and then deserialized to continue the conversation in a subsequent interaction.
+### Option 2 — Environment variable
 
-### Agent 07 - Custom Thread Storage
-This agent demonstrates how to use a custom `VectorChatMessageStore` to persist conversation history in memory. This allows for more flexible and scalable storage of conversation threads.
+```bash
+OPEN_ROUTER_API_KEY=your-api-key-here
+```
 
-### Agent 08 - Agent Using Image
-This sample shows how to use a multimodal model to analyze an image. The agent takes an image URL and a text prompt as input and returns a description of the image content.
+---
 
-### Agent 09 - Using Remote MCP Server
-This agent demonstrates how to use a remote MCP (Model Context Protocol) server. It connects to the Microsoft Learn MCP server to answer questions about Microsoft technologies, using the tools provided by the server.
+## 🚀 Running the Application
 
-### Agent 10 - Agent as Function
-This agent demonstrates how to use one agent as a tool for another. It creates a `weatherAgent` and then uses that agent as a function for another agent to respond to user queries in a specified language.
+```bash
+cd 0-Agents/AgentsWebUI
+dotnet run
+```
 
-### Agent 11 - Chat Reduction
-This agent demonstrates chat reduction techniques by using message store reducers to limit the conversation context to essential exchanges.
+Then open your browser to the URL shown in the terminal output (e.g., `http://localhost:5xxx`).
 
-### Agent 12 - Backgroud Responses
-This agent illustrates handling of background responses, enabling long processing times with response resumption and continuous streaming.
+---
 
-### Agent 13 - Plugins
-This agent showcases the use of plugins to integrate external services (e.g., weather and current time providers) via dependency injection, enhancing the agent’s functionality.
+## 📚 Sample Categories
 
-### Agent 14 - Middleware
-This agent demonstrates the use of middleware for logging, function overriding, and content redaction to enforce safety and custom behaviors.
+### 🚀 Basics (3 samples)
 
-### Agent 15 - Declartive Agent
-This agent is configured using a YAML definition that includes an output schema. It defines a declarative agent that returns its response in a JSON format.
+| Agent | Name | Description |
+|-------|------|-------------|
+| Agent 01 | Basic Agent | Demonstrates creating and running an agent. Shows simple request/response and streaming response. |
+| Agent 02 | Agent with Thread | Multi-turn conversations using threads. The agent remembers context of previous messages. |
+| Agent 05 | Structured Output | Extracts structured JSON data from unstructured text. Populates a `PersonInfo` object from natural language. |
 
-### Agent 16 - Reasoning
-This agent demonstrates the use of advanced reasoning capabilities in AI models. It uses OpenAI's o4-mini model to provide both a response and detailed reasoning content, showcasing how the agent can explain its thought process through sequential reasoning steps and displaying results via both synchronous and streaming modes.
+---
+
+### 🔧 Functions & Tools (4 samples)
+
+| Agent | Name | Description |
+|-------|------|-------------|
+| Agent 03 | Agent with Function/Tool | Provides `Add` and `Multiply` functions to an agent to solve math problems. |
+| Agent 04 | Functions with User Approval | Adds a user-approval step before any function is executed. |
+| Agent 10 | Agent as Function | Uses one agent as a callable tool for another agent. |
+| Agent 13 | Plugins | Plugin integration adding external services (weather, current time) via dependency injection. |
+
+---
+
+### 💾 Storage & Persistence (3 samples)
+
+| Agent | Name | Description |
+|-------|------|-------------|
+| Agent 06 | Persisted Conversation | Serializes a conversation thread to disk and resumes it in a later interaction. |
+| Agent 07 | Custom Thread Storage | Uses a custom `VectorChatMessageStore` to persist conversation history in memory. |
+| Agent 11 | Chat Reduction | Chat reduction techniques using message store reducers to limit context size. |
+
+---
+
+### 🌐 Multimodal & External Services (3 samples)
+
+| Agent | Name | Description |
+|-------|------|-------------|
+| Agent 08 | Agent Using Image | Multimodal model analyzes an image from a URL using a text prompt. |
+| Agent 09 | Using Remote MCP Server | Connects to the Microsoft Learn MCP server to answer questions about Microsoft technologies. |
+| Agent 12 | Background Responses | Asynchronous background responses with response resumption and continuous streaming. |
+
+---
+
+### ⚡ Advanced Features (3 samples)
+
+| Agent | Name | Description |
+|-------|------|-------------|
+| Agent 14 | Middleware | Middleware for logging, function overriding, and content redaction. |
+| Agent 15 | Declarative Agent | Agent configured via a YAML definition with an output schema returning structured JSON. |
+| Agent 16 | Reasoning | Advanced reasoning with OpenAI's `o4-mini` model, exposing step-by-step reasoning content. |
+
+---
+
+### 🧠 Prompting Strategies (7 samples)
+
+| Agent | Name | Description |
+|-------|------|-------------|
+| Agent 17 | Chain-of-Thought (CoT) | Step-by-step reasoning that guides the model to think through problems logically before answering. |
+| Agent 18 | Tree of Thoughts (ToT) | Explores multiple reasoning branches in parallel and selects the most promising solution. |
+| Agent 19 | Graph of Thoughts (GoT) | Builds a flexible reasoning graph where thoughts can merge, branch, and reference each other. |
+| Agent 20 | Program of Thoughts (PoT) | Generates algorithmic pseudocode to separate computation from reasoning. |
+| Agent 21 | ReAct | Interleaves reasoning traces with tool actions in a Thought→Action→Observation loop. |
+| Agent 22 | Reflection | Generates an initial response then applies self-criticism to identify improvements. |
+| Agent 23 | Self-Refine | Iteratively improves output through multiple critique-and-refine rounds. |
+
+---
+
+## 📁 Project Structure
+
+```
+agent-framework-sample/
+├── 0-Agents/
+│   └── AgentsWebUI/
+│       ├── Components/
+│       │   ├── Layout/          # MainLayout, NavMenu
+│       │   └── Pages/           # Home + Agent01-Agent23
+│       ├── wwwroot/
+│       │   └── app.css          # Central design system CSS
+│       ├── Program.cs
+│       └── appsettings.json
+├── plans/                       # UI design documentation
+└── readme.md
+```
+
+---
+
+## 📄 License
+
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.

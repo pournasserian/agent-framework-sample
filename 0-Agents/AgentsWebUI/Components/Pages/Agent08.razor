@@ -1,36 +1,82 @@
 ﻿@page "/agent08"
 @inject IConfiguration Configuration
 
-<PageTitle>Agent 08</PageTitle>
+<PageTitle>Agent 08 – Agent Using Image</PageTitle>
 
-<h1>Agent 08 - Agent Using Image</h1>
-
-<p>Uses multimodal capabilities with image analysis, sending text prompts and image URLs to the AI for descriptive responses using GPT-4o via OpenRouter.</p>
-
-<div class="form-group mb-3">
-    <label>Instructions</label>
-    <InputTextArea @bind-Value="instructions" class="form-control"></InputTextArea>
-</div>
-<div class="form-group mb-3">
-    <label>Message</label>
-    <InputTextArea @bind-Value="message" class="form-control"></InputTextArea>
-</div>
-<img src="https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg" style="max-width: 400px" class="mb-3" />
-<div class="form-group mb-3">
-    <button type="submit" class="btn btn-primary" disabled="@isLoading" onclick="@OnSubmitStream">Stream</button>
+<div class="page-header">
+    <h1 class="page-title">🖼️ Agent 08 – Agent Using Image</h1>
+    <p class="page-subtitle">Uses multimodal capabilities with image analysis, sending text prompts and image URLs to the AI for descriptive responses using GPT-4o via OpenRouter.</p>
 </div>
 
-@if (!string.IsNullOrEmpty(response))
-{
+<div class="agent-layout layout-4-8">
+
+    <!-- Left: Config Panel -->
     <div>
-        <div class="mb-3 card">
+        <div class="card panel panel-config mb-4">
+            <div class="card-header">⚙️ Configuration</div>
             <div class="card-body">
-                <h5 class="card-title">Response</h5>
-                <p class="card-text">@response</p>
+                <div class="mb-3">
+                    <label class="form-label">Instructions</label>
+                    <InputTextArea @bind-Value="instructions" class="form-control instructions-input"></InputTextArea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Question about Image</label>
+                    <InputTextArea @bind-Value="message" class="form-control message-input"></InputTextArea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Image Preview</label>
+                    <div>
+                        <img src="/image.jpg"
+                             class="img-fluid rounded mb-2"
+                             style="max-height: 200px; object-fit: cover; width: 100%;"
+                             alt="Nature boardwalk in Wisconsin Madison" />
+                    </div>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-purple" disabled="@isLoading" @onclick="OnSubmitStream">
+                        @(isLoading ? "Analyzing..." : "🔍 Analyze Image")
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-}
+
+    <!-- Right: Result Panel -->
+    <div>
+        @if (isLoading && string.IsNullOrEmpty(response))
+        {
+            <div class="card panel panel-result mb-4">
+                <div class="card-header">💬 Analysis</div>
+                <div class="card-body">
+                    <p class="response-pending">
+                        <span class="streaming-indicator" aria-label="Processing">
+                            <span></span><span></span><span></span>
+                        </span>
+                        Analyzing image...
+                    </p>
+                </div>
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(response))
+        {
+            <div class="card panel panel-result mb-4">
+                <div class="card-header">
+                    💬 Image Analysis
+                    @if (isLoading)
+                    {
+                        <span class="streaming-indicator ms-2" aria-label="Streaming">
+                            <span></span><span></span><span></span>
+                        </span>
+                    }
+                </div>
+                <div class="card-body">
+                    <div class="response-text">@response</div>
+                </div>
+            </div>
+        }
+    </div>
+
+</div>
 
 @code {
     private string message = "What do you see in this image?";
@@ -63,11 +109,15 @@
     {
         response = string.Empty;
         isLoading = true;
+        // Load image binary from local image file at wwwroot/image.jpg
+
+        var imageData = await File.ReadAllBytesAsync("wwwroot/image.jpg");
+        var imageContent = new DataContent(imageData, "image/jpeg");
 
         var chatMessage = new Microsoft.Extensions.AI.ChatMessage(ChatRole.User,
             [
                 new TextContent(message),
-                new UriContent("https://upload.wikimedia.org/wikipedia/commons/thumb/d/dd/Gfp-wisconsin-madison-the-nature-boardwalk.jpg/2560px-Gfp-wisconsin-madison-the-nature-boardwalk.jpg", "image/jpeg")
+                imageContent
             ]);
         var thread = await agent.CreateSessionAsync();
 

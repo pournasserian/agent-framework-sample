@@ -1,41 +1,118 @@
 ﻿@page "/agent02"
 @inject IConfiguration Configuration
-<PageTitle>Agent 02</PageTitle>
 
-<h1>Agent 02 - Agent with Thread (Multi-conversation)</h1>
+<PageTitle>Agent 02 – Agent with Thread</PageTitle>
 
-<p>Showcases multi-turn conversations with threads, where the agent maintains context across sequential messages using GetNewThread() for continued interaction.</p>
-
-<div class="form-group mb-3">
-    <label>Instructions</label>
-    <InputTextArea @bind-Value="instructions" class="form-control"></InputTextArea>
-</div>
-<div class="form-group mb-3">
-    <label>First Message</label>
-    <InputTextArea @bind-Value="firstMessage" class="form-control"></InputTextArea>
-</div>
-<div class="form-group mb-3">
-    <label>Second Message</label>
-    <InputTextArea @bind-Value="secondMessage" class="form-control"></InputTextArea>
-</div>
-<div class="form-group mb-3">
-    <button type="submit" class="btn btn-primary" disabled="@isLoading" onclick="@OnSubmit">Submit</button>
-    <button type="submit" class="btn btn-primary" disabled="@isLoading" onclick="@OnSubmitStream">Stream</button>
+<div class="page-header">
+    <h1 class="page-title">🧵 Agent 02 – Agent with Thread</h1>
+    <p class="page-subtitle">Showcases multi-turn conversations with threads, where the agent maintains context across sequential messages using GetNewThread() for continued interaction.</p>
 </div>
 
-@if (!string.IsNullOrEmpty(firstResponse))
-{
+<div class="agent-layout layout-4-8">
+
+    <!-- Left: Config Panel -->
     <div>
-        <div class="mb-3 card">
+        <div class="card panel panel-config mb-4">
+            <div class="card-header">⚙️ Configuration</div>
             <div class="card-body">
-                <h5 class="card-title">Response</h5>
-                <p class="card-text">@firstResponse</p>
-                <hr />
-                <p class="card-text">@secondResponse</p>
+                <div class="mb-3">
+                    <label class="form-label">Instructions</label>
+                    <InputTextArea @bind-Value="instructions" class="form-control instructions-input"></InputTextArea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">First Message</label>
+                    <InputTextArea @bind-Value="firstMessage" class="form-control message-input"></InputTextArea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Second Message</label>
+                    <InputTextArea @bind-Value="secondMessage" class="form-control message-input"></InputTextArea>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-primary" disabled="@isLoading" @onclick="OnSubmit">
+                        @(isLoading ? "Running..." : "🚀 Submit")
+                    </button>
+                    <button class="btn btn-outline-primary" disabled="@isLoading" @onclick="OnSubmitStream">
+                        @(isLoading ? "Streaming..." : "📡 Stream")
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-}
+
+    <!-- Right: Thread Panel -->
+    <div>
+        @if (isLoading && string.IsNullOrEmpty(firstResponse))
+        {
+            <div class="card panel panel-thread mb-4">
+                <div class="card-header">🧵 Conversation Thread</div>
+                <div class="card-body">
+                    <p class="response-pending">
+                        <span class="streaming-indicator" aria-label="Processing">
+                            <span></span><span></span><span></span>
+                        </span>
+                        Waiting for response...
+                    </p>
+                </div>
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(firstResponse))
+        {
+            <div class="card panel panel-thread mb-4">
+                <div class="card-header">
+                    🧵 Conversation Thread
+                    @if (isLoading)
+                    {
+                        <span class="streaming-indicator ms-2" aria-label="Streaming">
+                            <span></span><span></span><span></span>
+                        </span>
+                    }
+                </div>
+                <div class="card-body">
+                    <div class="chat-container">
+                        <div class="chat-message chat-user">
+                            <span class="chat-label">You</span>
+                            <div class="chat-bubble">@firstMessage</div>
+                        </div>
+                        <div class="chat-message chat-assistant">
+                            <span class="chat-label">Agent</span>
+                            <div class="chat-bubble">
+                                <div class="response-text">@firstResponse</div>
+                            </div>
+                        </div>
+                        @if (!string.IsNullOrEmpty(secondResponse))
+                        {
+                            <div class="chat-message chat-user">
+                                <span class="chat-label">You</span>
+                                <div class="chat-bubble">@secondMessage</div>
+                            </div>
+                            <div class="chat-message chat-assistant">
+                                <span class="chat-label">Agent</span>
+                                <div class="chat-bubble">
+                                    <div class="response-text">@secondResponse</div>
+                                </div>
+                            </div>
+                        }
+                        @if (isLoading && !string.IsNullOrEmpty(firstResponse) && string.IsNullOrEmpty(secondResponse))
+                        {
+                            <div class="chat-message chat-user">
+                                <span class="chat-label">You</span>
+                                <div class="chat-bubble">@secondMessage</div>
+                            </div>
+                            <div class="chat-message chat-assistant chat-typing">
+                                <div class="chat-bubble">
+                                    <span class="chat-typing-dot"></span>
+                                    <span class="chat-typing-dot"></span>
+                                    <span class="chat-typing-dot"></span>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+</div>
 
 @code {
     private string instructions = "You are good at telling jokes.";

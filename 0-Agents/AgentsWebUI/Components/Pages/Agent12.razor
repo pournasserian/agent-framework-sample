@@ -1,38 +1,79 @@
 ﻿@page "/agent12"
 @inject IConfiguration Configuration
 
-<PageTitle>Agent 12</PageTitle>
+<PageTitle>Agent 12 – Background Responses</PageTitle>
 
-<h1>Agent 12 - Backgroud Responses</h1>
-
-<p>Explores background responses with continuation tokens for handling long-running processes and resumable streaming (note: Azure-only feature).</p>
-
-<h4>This example won't work: it only works with Azure and they don't support other yet.</h4>
-
-<div class="form-group mb-3">
-    <label>Instructions</label>
-    <InputTextArea @bind-Value="instructions" class="form-control"></InputTextArea>
-</div>
-<div class="form-group mb-3">
-    <label>Message</label>
-    <InputTextArea @bind-Value="message" class="form-control"></InputTextArea>
-</div>
-<div class="form-group mb-3">
-    <button type="submit" class="btn btn-primary" disabled="@isLoading" onclick="@OnSubmit">Submit</button>
-    <button type="submit" class="btn btn-primary" disabled="@isLoading" onclick="@OnSubmitStream">Stream</button>
+<div class="page-header">
+    <h1 class="page-title">⏳ Agent 12 – Background Responses</h1>
+    <p class="page-subtitle">Explores background responses with continuation tokens for handling long-running processes and resumable streaming (note: Azure-only feature).</p>
 </div>
 
-@if (!string.IsNullOrEmpty(response))
-{
+<div class="agent-layout layout-4-8">
+
+    <!-- Left: Config Panel -->
     <div>
-        <div class="mb-3 card">
+        <div class="card panel panel-config mb-4">
+            <div class="card-header">⚙️ Configuration</div>
             <div class="card-body">
-                <h5 class="card-title">Response</h5>
-                <p class="card-text">@((MarkupString)RenderMarkdown(@response))</p>
+                <div class="mb-3">
+                    <label class="form-label">Instructions</label>
+                    <InputTextArea @bind-Value="instructions" class="form-control instructions-input"></InputTextArea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Message</label>
+                    <InputTextArea @bind-Value="message" class="form-control message-input"></InputTextArea>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-primary" disabled="@isLoading" @onclick="OnSubmit">
+                        @(isLoading ? "Running..." : "🚀 Submit")
+                    </button>
+                    <button class="btn btn-outline-primary" disabled="@isLoading" @onclick="OnSubmitStream">
+                        @(isLoading ? "Streaming..." : "📡 Stream")
+                    </button>
+                </div>
             </div>
         </div>
+        <div class="alert alert-warning">
+            ⚠️ <strong>Azure-only feature.</strong> This example requires Azure OpenAI and will not work with other providers. Background responses use <code>AllowBackgroundResponses = true</code> and <code>ContinuationToken</code> for resumable streaming.
+        </div>
     </div>
-}
+
+    <!-- Right: Result Panel -->
+    <div>
+        @if (isLoading && string.IsNullOrEmpty(response))
+        {
+            <div class="card panel panel-result mb-4">
+                <div class="card-header">💬 Response</div>
+                <div class="card-body">
+                    <p class="response-pending">
+                        <span class="streaming-indicator" aria-label="Processing">
+                            <span></span><span></span><span></span>
+                        </span>
+                        Processing long-running background response...
+                    </p>
+                </div>
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(response))
+        {
+            <div class="card panel panel-result mb-4">
+                <div class="card-header">
+                    💬 Background Response
+                    @if (isLoading)
+                    {
+                        <span class="streaming-indicator ms-2" aria-label="Streaming">
+                            <span></span><span></span><span></span>
+                        </span>
+                    }
+                </div>
+                <div class="card-body">
+                    <div class="response-text">@((MarkupString)RenderMarkdown(@response))</div>
+                </div>
+            </div>
+        }
+    </div>
+
+</div>
 
 @code {
 

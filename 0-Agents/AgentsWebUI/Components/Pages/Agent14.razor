@@ -1,43 +1,93 @@
 ﻿@page "/agent14"
 @inject IConfiguration Configuration
 
-<PageTitle>Agent 14</PageTitle>
+<PageTitle>Agent 14 – Middleware</PageTitle>
 
-<h1>Agent 14 - Middleware</h1>
-
-<p>Implements middleware for function call logging, PII filtering, guardrails, and overriding results to enhance agent behavior and safety.</p>
-
-<div class="form-group mb-3">
-    <label>Instructions</label>
-    <InputTextArea @bind-Value="instructions" class="form-control"></InputTextArea>
-</div>
-<div class="form-group mb-3">
-    <label>Message</label>
-    <InputTextArea @bind-Value="message" class="form-control" style="height:200px;"></InputTextArea>
-</div>
-<div class="form-group mb-3">
-    <button type="submit" class="btn btn-primary" disabled="@isLoading" onclick="@OnSubmit">Submit</button>
-    <button type="submit" class="btn btn-primary" disabled="@isLoading" onclick="@OnSubmitStream">Stream</button>
+<div class="page-header">
+    <h1 class="page-title">⚠️ Agent 14 – Middleware</h1>
+    <p class="page-subtitle">Implements middleware for function call logging, PII filtering, guardrails, and overriding results to enhance agent behavior and safety.</p>
 </div>
 
-@if (!string.IsNullOrEmpty(response))
-{
+<div class="agent-layout layout-4-8">
+
+    <!-- Left: Config Panel -->
     <div>
-        <div class="mb-3 card">
+        <div class="card panel panel-config mb-4">
+            <div class="card-header">⚙️ Configuration</div>
             <div class="card-body">
-                <h5 class="card-title">Response</h5>
-                <p class="card-text">@((MarkupString)@response)</p>
+                <div class="mb-3">
+                    <label class="form-label">Instructions</label>
+                    <InputTextArea @bind-Value="instructions" class="form-control instructions-input"></InputTextArea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Message</label>
+                    <InputTextArea @bind-Value="message" class="form-control message-input" style="height:150px;"></InputTextArea>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-warning text-dark" disabled="@isLoading" @onclick="OnSubmit">
+                        @(isLoading ? "Running..." : "⚠️ Submit")
+                    </button>
+                    <button class="btn btn-outline-secondary" disabled="@isLoading" @onclick="OnSubmitStream">
+                        @(isLoading ? "Streaming..." : "📡 Stream")
+                    </button>
+                </div>
             </div>
         </div>
-        <div class="mb-3 card">
+        <div class="card panel panel-config mb-4">
+            <div class="card-header">🔗 Middleware Pipeline</div>
             <div class="card-body">
-                <h5 class="card-title">Log</h5>
-                <p class="card-text">@((MarkupString)log)</p>
+                <ul class="list-unstyled mb-0 small">
+                    <li class="mb-2"><span class="badge badge-warning">1</span> <strong>FunctionCallMiddleware</strong> — logs Pre/Post invoke for all functions</li>
+                    <li class="mb-2"><span class="badge badge-warning">2</span> <strong>FunctionCallOverrideWeather</strong> — overrides the weather result</li>
+                    <li class="mb-2"><span class="badge badge-warning">3</span> <strong>PIIMiddleware</strong> — redacts phone numbers, emails &amp; names</li>
+                    <li class="mb-2"><span class="badge badge-warning">4</span> <strong>GuardrailMiddleware</strong> — filters harmful/illegal/violent content</li>
+                </ul>
             </div>
         </div>
     </div>
 
-}
+    <!-- Right: Result + Log Panel -->
+    <div>
+        @if (isLoading && string.IsNullOrEmpty(response))
+        {
+            <div class="card panel panel-result mb-4">
+                <div class="card-header">📤 Response</div>
+                <div class="card-body">
+                    <p class="response-pending">
+                        <span class="streaming-indicator" aria-label="Processing">
+                            <span></span><span></span><span></span>
+                        </span>
+                        Processing middleware pipeline...
+                    </p>
+                </div>
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(response))
+        {
+            <div class="card panel panel-result mb-4">
+                <div class="card-header">
+                    📤 Response
+                    @if (isLoading)
+                    {
+                        <span class="streaming-indicator ms-2" aria-label="Streaming">
+                            <span></span><span></span><span></span>
+                        </span>
+                    }
+                </div>
+                <div class="card-body">
+                    <div class="response-text">@((MarkupString)response)</div>
+                </div>
+            </div>
+            <div class="card panel panel-log mb-4">
+                <div class="card-header">📋 Middleware Log</div>
+                <div class="card-body">
+                    <div class="thread-log">@((MarkupString)log)</div>
+                </div>
+            </div>
+        }
+    </div>
+
+</div>
 
 @code {
 #pragma warning disable MEAI001
