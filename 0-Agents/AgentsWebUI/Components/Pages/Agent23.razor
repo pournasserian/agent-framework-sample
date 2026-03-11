@@ -116,8 +116,8 @@
 
     protected override Task OnInitializedAsync()
     {
-        var apiKey = Configuration["OPEN_ROUTER_API_KEY"] ??
-            throw new InvalidOperationException("OPEN_ROUTER_API_KEY is not set.");
+        var apiKey = Configuration["OpenRouter:ApiKey"] ?? Configuration["OPEN_ROUTER_API_KEY"] ??
+            throw new InvalidOperationException("OpenRouter:ApiKey (or OPEN_ROUTER_API_KEY) is not configured.");
         var openAIClientOptions = new OpenAIClientOptions { Endpoint = new Uri(endpoint) };
         var credential = new ApiKeyCredential(apiKey);
 
