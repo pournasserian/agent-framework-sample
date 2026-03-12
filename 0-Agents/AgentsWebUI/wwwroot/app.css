@@ -816,6 +816,26 @@ textarea.form-control.message-input {
     color: var(--color-white);
 }
 
+/* Prompting strategies / pink */
+.btn-prompting {
+    background-color: var(--color-cat-prompting);
+    border-color: #c72d7c;
+    color: var(--color-white);
+    font-weight: var(--font-weight-medium);
+    border-radius: var(--radius-md);
+}
+
+.btn-prompting:hover:not(:disabled) {
+    background-color: #c72d7c;
+    border-color: #a3255f;
+    color: var(--color-white);
+}
+
+.btn-prompting:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
 /* Stream / animated button state */
 .btn-stream-active {
     position: relative;

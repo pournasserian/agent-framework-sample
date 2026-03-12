@@ -27,7 +27,7 @@
                 <div class="mb-2 small text-muted">
                     Graph: <code>Input → Decomposer → Node1, Node2 → Synthesizer → Output</code>
                 </div>
-                <button class="btn" style="background-color:#e83e8c;color:white;" @onclick="OnSubmit" disabled="@isLoading">
+                <button class="btn btn-prompting" @onclick="OnSubmit" disabled="@isLoading">
                     @(isLoading ? "Running..." : "🕸️ Run Graph of Thoughts")
                 </button>
             </div>
