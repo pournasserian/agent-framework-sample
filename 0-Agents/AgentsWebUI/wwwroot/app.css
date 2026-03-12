@@ -97,6 +97,7 @@
     --font-size-2xl:          1.5rem;    /*  24px */
     --font-size-3xl:          1.875rem;  /*  30px */
     --font-size-4xl:          2.25rem;   /*  36px */
+    --font-size-5xl:          2.5rem;    /*  40px */
 
     --font-weight-normal:     400;
     --font-weight-medium:     500;
@@ -293,6 +294,11 @@ main > article.content {
     opacity: 0.9;
     max-width: 680px;
     font-size: var(--font-size-lg);
+}
+
+/* Hero icon (robot emoji beside the h1) */
+.hero-icon {
+    font-size: var(--font-size-5xl);
 }
 
 /* Pill badges inside hero */
