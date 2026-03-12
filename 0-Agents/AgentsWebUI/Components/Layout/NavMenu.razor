@@ -20,7 +20,7 @@
 
         @* 🚀 Basics *@
         <div class="nav-item px-3">
-            <div class="nav-category-header" style="color: #0d6efd;">🚀 BASICS</div>
+            <div class="nav-category-header" style="color: var(--color-cat-basics);">🚀 BASICS</div>
             <NavLink class="nav-link" href="agent01">Basic</NavLink>
             <NavLink class="nav-link" href="agent02">Threads</NavLink>
             <NavLink class="nav-link" href="agent05">Structured Output</NavLink>
@@ -30,7 +30,7 @@
 
         @* 🔧 Functions & Tools *@
         <div class="nav-item px-3">
-            <div class="nav-category-header" style="color: #198754;">🔧 FUNCTIONS &amp; TOOLS</div>
+            <div class="nav-category-header" style="color: var(--color-cat-functions);">🔧 FUNCTIONS &amp; TOOLS</div>
             <NavLink class="nav-link" href="agent03">Functions/Tools</NavLink>
             <NavLink class="nav-link" href="agent04">Function Approval</NavLink>
             <NavLink class="nav-link" href="agent10">Agent as Function</NavLink>
@@ -41,7 +41,7 @@
 
         @* 💾 Storage & Persistence *@
         <div class="nav-item px-3">
-            <div class="nav-category-header" style="color: #087990;">💾 STORAGE &amp; PERSISTENCE</div>
+            <div class="nav-category-header" style="color: var(--color-cat-storage);">💾 STORAGE &amp; PERSISTENCE</div>
             <NavLink class="nav-link" href="agent06">Persisted Conversation</NavLink>
             <NavLink class="nav-link" href="agent07">Custom Thread Storage</NavLink>
             <NavLink class="nav-link" href="agent11">Chat Reduction</NavLink>
@@ -51,7 +51,7 @@
 
         @* 🌐 Multimodal & External *@
         <div class="nav-item px-3">
-            <div class="nav-category-header" style="color: #6f42c1;">🌐 MULTIMODAL &amp; EXTERNAL</div>
+            <div class="nav-category-header" style="color: var(--color-cat-multimodal);">🌐 MULTIMODAL &amp; EXTERNAL</div>
             <NavLink class="nav-link" href="agent08">Using Image</NavLink>
             <NavLink class="nav-link" href="agent09">Using MCP Server</NavLink>
             <NavLink class="nav-link" href="agent12">Background Responses</NavLink>
@@ -61,47 +61,35 @@
 
         @* ⚡ Advanced Features *@
         <div class="nav-item px-3">
-            <div class="nav-category-header" style="color: #fd7e14;">⚡ ADVANCED FEATURES</div>
+            <div class="nav-category-header" style="color: var(--color-cat-advanced);">⚡ ADVANCED FEATURES</div>
             <NavLink class="nav-link" href="agent14">Middleware</NavLink>
             <NavLink class="nav-link" href="agent15">Declarative Agent</NavLink>
             <NavLink class="nav-link" href="agent16">Reasoning</NavLink>
         </div>
 
         <hr class="nav-divider" />
-        <div class="nav-category-header" style="color: #e83e8c;">
-            <span>🧠</span> PROMPTING STRATEGIES
-        </div>
+
+        @* 🧠 Prompting Strategies *@
         <div class="nav-item px-3">
+            <div class="nav-category-header" style="color: var(--color-cat-prompting);">🧠 PROMPTING STRATEGIES</div>
             <NavLink class="nav-link" href="agent17">
                 <span class="nav-icon">🔗</span> Chain-of-Thought
             </NavLink>
-        </div>
-        <div class="nav-item px-3">
             <NavLink class="nav-link" href="agent18">
                 <span class="nav-icon">🌳</span> Tree of Thoughts
             </NavLink>
-        </div>
-        <div class="nav-item px-3">
             <NavLink class="nav-link" href="agent19">
                 <span class="nav-icon">🕸️</span> Graph of Thoughts
             </NavLink>
-        </div>
-        <div class="nav-item px-3">
             <NavLink class="nav-link" href="agent20">
                 <span class="nav-icon">💻</span> Program of Thoughts
             </NavLink>
-        </div>
-        <div class="nav-item px-3">
             <NavLink class="nav-link" href="agent21">
                 <span class="nav-icon">⚡</span> ReAct
             </NavLink>
-        </div>
-        <div class="nav-item px-3">
             <NavLink class="nav-link" href="agent22">
                 <span class="nav-icon">🪞</span> Reflection
             </NavLink>
-        </div>
-        <div class="nav-item px-3">
             <NavLink class="nav-link" href="agent23">
                 <span class="nav-icon">✨</span> Self-Refine
             </NavLink>

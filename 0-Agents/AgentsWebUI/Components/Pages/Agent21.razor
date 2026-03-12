@@ -3,54 +3,93 @@
 @using System.ComponentModel
 @inject IConfiguration Configuration
 
-<PageTitle>Agent 21</PageTitle>
-<h1>Agent 21 - ReAct (Reason + Act)</h1>
-<p class="lead">Interleaves reasoning traces with action execution, allowing the agent to think, act, observe, and iterate toward a solution.</p>
+<PageTitle>Agent 21 – ReAct</PageTitle>
 
-<div class="row">
-    <div class="col-md-8">
-        <div class="card mb-3">
-            <div class="card-header">Configuration</div>
-            <div class="card-body">
-                <div class="form-group mb-3">
-                    <label class="form-label fw-semibold">Message</label>
-                    <textarea class="form-control" rows="3" @bind="message"></textarea>
-                </div>
-                <button class="btn btn-primary me-2" @onclick="OnSubmit" disabled="@isLoading">
-                    @(isLoading ? "Running..." : "Submit")
-                </button>
-                <button class="btn btn-outline-primary" @onclick="OnSubmitStream" disabled="@isLoading">
-                    @(isLoading ? "Running..." : "Stream")
-                </button>
-            </div>
-        </div>
-    </div>
+<div class="page-header">
+    <h1 class="page-title">🩷 Agent 21 – ReAct (Reason + Act)</h1>
+    <p class="page-subtitle">Interleaves reasoning traces with action execution, allowing the agent to think, act, observe, and iterate toward a solution.</p>
 </div>
 
-@if (logMessages.Count > 0)
-{
-    <div class="card mb-3">
-        <div class="card-header">Log — Tool Invocations</div>
-        <div class="card-body">
-            <ul class="list-unstyled mb-0">
-                @foreach (var log in logMessages)
-                {
-                    <li class="small text-muted"><code>@log</code></li>
-                }
-            </ul>
-        </div>
-    </div>
-}
+<div class="alert alert-info mb-4">
+    <strong>💡 ReAct (Reason + Act):</strong> A prompting strategy that interleaves reasoning traces with tool-use actions. The agent cycles through: <em>Thought</em> (what to do and why) → <em>Action</em> (calling a tool) → <em>Observation</em> (what the tool returned), repeating until it reaches a Final Answer.
+</div>
 
-@if (!string.IsNullOrEmpty(response))
-{
-    <div class="card mb-3">
-        <div class="card-header">Response — Thought → Action → Observation Loop</div>
-        <div class="card-body">
-            <p>@((MarkupString)response)</p>
+<div class="agent-layout layout-4-8">
+
+    <!-- Left: Config Panel -->
+    <div>
+        <div class="card panel panel-config mb-4">
+            <div class="card-header">⚙️ Configuration</div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Message</label>
+                    <textarea class="form-control message-input" @bind="message"></textarea>
+                </div>
+                <div class="mb-2 small text-muted">
+                    Tools: <span class="badge badge-primary">SearchWeb</span> <span class="badge badge-success">Calculate</span> <span class="badge badge-primary">LookupFact</span>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-prompting" @onclick="OnSubmit" disabled="@isLoading">
+                        @(isLoading ? "Running..." : "⚡ Submit")
+                    </button>
+                    <button class="btn btn-outline-secondary" @onclick="OnSubmitStream" disabled="@isLoading">
+                        @(isLoading ? "Running..." : "📡 Stream")
+                    </button>
+                </div>
+            </div>
         </div>
+        @if (logMessages.Count > 0)
+        {
+            <div class="card panel panel-log mb-4">
+                <div class="card-header">🔨 Tool Invocations</div>
+                <div class="card-body">
+                    <ul class="log-list mb-0">
+                        @foreach (var log in logMessages)
+                        {
+                            <li><code>@log</code></li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        }
     </div>
-}
+
+    <!-- Right: Result Panel -->
+    <div>
+        @if (isLoading && string.IsNullOrEmpty(response))
+        {
+            <div class="card panel panel-result mb-4">
+                <div class="card-header">⚡ Thought → Action → Observation...</div>
+                <div class="card-body">
+                    <p class="response-pending">
+                        <span class="streaming-indicator" aria-label="Processing">
+                            <span></span><span></span><span></span>
+                        </span>
+                        Running ReAct loop...
+                    </p>
+                </div>
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(response))
+        {
+            <div class="card panel panel-result mb-4">
+                <div class="card-header">
+                    ⚡ Thought → Action → Observation Loop
+                    @if (isLoading)
+                    {
+                        <span class="streaming-indicator ms-2" aria-label="Streaming">
+                            <span></span><span></span><span></span>
+                        </span>
+                    }
+                </div>
+                <div class="card-body">
+                    <div class="response-text">@((MarkupString)response)</div>
+                </div>
+            </div>
+        }
+    </div>
+
+</div>
 
 @code {
 #pragma warning disable MEAI001
@@ -67,8 +106,8 @@
 
     protected override Task OnInitializedAsync()
     {
-        var apiKey = Configuration["OPEN_ROUTER_API_KEY"] ??
-            throw new InvalidOperationException("OPEN_ROUTER_API_KEY is not set.");
+        var apiKey = Configuration["OpenRouter:ApiKey"] ?? Configuration["OPEN_ROUTER_API_KEY"] ??
+            throw new InvalidOperationException("OpenRouter:ApiKey (or OPEN_ROUTER_API_KEY) is not configured.");
         var openAIClientOptions = new OpenAIClientOptions { Endpoint = new Uri(endpoint) };
         var credential = new ApiKeyCredential(apiKey);
         var chatClient = new ChatClient(modelName, credential, openAIClientOptions);

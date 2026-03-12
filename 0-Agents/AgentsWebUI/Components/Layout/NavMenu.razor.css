@@ -16,12 +16,13 @@
 }
 
 .top-row {
-    min-height: 3.5rem;
+    min-height: var(--toprow-height, 3.5rem);
     background-color: rgba(0,0,0,0.4);
 }
 
 .navbar-brand {
-    font-size: 1.1rem;
+    font-size: var(--font-size-lg, 1.1rem);
+    font-weight: var(--font-weight-semibold, 600);
 }
 
 .bi {
@@ -47,23 +48,23 @@
 }
 
 .nav-item {
-    font-size: 0.9rem;
-    padding-bottom: 0.5rem;
+    font-size: var(--font-size-sm, 0.875rem);
+    padding-bottom: var(--space-2, 0.5rem);
 }
 
     .nav-item:first-of-type {
-        padding-top: 1rem;
+        padding-top: var(--space-4, 1rem);
     }
 
     .nav-item:last-of-type {
-        padding-bottom: 1rem;
+        padding-bottom: var(--space-4, 1rem);
     }
 
     .nav-item ::deep .nav-link {
         color: #d7d7d7;
         background: none;
         border: none;
-        border-radius: 4px;
+        border-radius: var(--radius-md, 4px);
         height: 3rem;
         display: flex;
         align-items: center;
@@ -99,7 +100,7 @@
         display: block;
 
         /* Allow sidebar to scroll for tall menus */
-        height: calc(100vh - 3.5rem);
+        height: calc(100vh - var(--toprow-height, 3.5rem));
         overflow-y: auto;
     }
 }
@@ -107,12 +108,12 @@
 /* ─── NavMenu Category Headers ─────────────────────────────────────────── */
 
 .nav-category-header {
-    font-size: 0.7rem;
-    font-weight: 700;
+    font-size: var(--font-size-xs, 0.7rem);
+    font-weight: var(--font-weight-bold, 700);
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    padding: 0.5rem 0 0.25rem 0;
-    /* colour is set inline per category */
+    padding: var(--space-2, 0.5rem) 0 var(--space-1, 0.25rem) 0;
+    /* color is set inline per category using CSS variable: style="color: var(--color-cat-*)" */
     pointer-events: none;
     user-select: none;
 }

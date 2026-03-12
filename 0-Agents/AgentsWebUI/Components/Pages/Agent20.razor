@@ -2,61 +2,89 @@
 @using Markdig
 @inject IConfiguration Configuration
 
-<PageTitle>Agent 20</PageTitle>
-<h1>Agent 20 - Program of Thoughts (PoT)</h1>
-<p class="lead">Generates executable pseudocode or step-by-step algorithmic logic to solve problems, separating computation from reasoning.</p>
+<PageTitle>Agent 20 – Program of Thoughts</PageTitle>
 
-<div class="row">
-    <div class="col-md-8">
-        <div class="card mb-3">
-            <div class="card-header">Configuration</div>
+<div class="page-header">
+    <h1 class="page-title">🩷 Agent 20 – Program of Thoughts (PoT)</h1>
+    <p class="page-subtitle">Generates executable pseudocode or step-by-step algorithmic logic to solve problems, separating computation from reasoning.</p>
+</div>
+
+<div class="alert alert-info mb-4">
+    <strong>💡 Program of Thoughts (PoT):</strong> A prompting strategy that separates reasoning from computation. The model writes a pseudocode program to solve the problem (the "program"), then a separate interpreter agent traces through each step to execute it and derive the final result.
+</div>
+
+<div class="agent-layout layout-4-8">
+
+    <!-- Left: Config Panel -->
+    <div>
+        <div class="card panel panel-config mb-4">
+            <div class="card-header">⚙️ Configuration</div>
             <div class="card-body">
-                <div class="form-group mb-3">
-                    <label class="form-label fw-semibold">Message</label>
-                    <textarea class="form-control" rows="3" @bind="message"></textarea>
+                <div class="mb-3">
+                    <label class="form-label">Problem / Question</label>
+                    <textarea class="form-control message-input" @bind="message"></textarea>
                 </div>
-                <button class="btn btn-primary me-2" @onclick="OnSubmit" disabled="@isLoading">
-                    @(isLoading ? "Running..." : "Submit")
+                <div class="mb-2 small text-muted">
+                    Pipeline: <span class="badge badge-primary">Programmer</span> → <span class="badge badge-success">Interpreter</span>
+                </div>
+                <button class="btn btn-prompting" @onclick="OnSubmit" disabled="@isLoading">
+                    @(isLoading ? "Running..." : "💻 Run Program of Thoughts")
                 </button>
             </div>
         </div>
+        @if (logMessages.Count > 0)
+        {
+            <div class="card panel panel-log mb-4">
+                <div class="card-header">📋 Log</div>
+                <div class="card-body">
+                    <ul class="log-list mb-0">
+                        @foreach (var log in logMessages)
+                        {
+                            <li><code>@log</code></li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        }
     </div>
+
+    <!-- Right: Result Panel -->
+    <div>
+        @if (isLoading && string.IsNullOrEmpty(programOutput))
+        {
+            <div class="card panel panel-result mb-4">
+                <div class="card-header">💻 Generating Program...</div>
+                <div class="card-body">
+                    <p class="response-pending">
+                        <span class="streaming-indicator" aria-label="Processing">
+                            <span></span><span></span><span></span>
+                        </span>
+                        Writing pseudocode...
+                    </p>
+                </div>
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(programOutput))
+        {
+            <div class="card panel panel-result mb-3">
+                <div class="card-header">📝 Program (Pseudocode)</div>
+                <div class="card-body">
+                    <pre class="response-text"><code>@programOutput</code></pre>
+                </div>
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(executionTrace))
+        {
+            <div class="card panel panel-result mb-4" style="border-color: var(--color-success);">
+                <div class="card-header" style="background-color: var(--color-success); color: white;">▶️ Execution Trace</div>
+                <div class="card-body">
+                    <div class="response-text">@((MarkupString)RenderMarkdown(executionTrace))</div>
+                </div>
+            </div>
+        }
+    </div>
+
 </div>
-
-@if (logMessages.Count > 0)
-{
-    <div class="card mb-3">
-        <div class="card-header">Log</div>
-        <div class="card-body">
-            <ul class="list-unstyled mb-0">
-                @foreach (var log in logMessages)
-                {
-                    <li class="small text-muted"><code>@log</code></li>
-                }
-            </ul>
-        </div>
-    </div>
-}
-
-@if (!string.IsNullOrEmpty(programOutput))
-{
-    <div class="card mb-3 border-primary">
-        <div class="card-header bg-primary text-white">Program (Pseudocode)</div>
-        <div class="card-body">
-            <pre><code>@programOutput</code></pre>
-        </div>
-    </div>
-}
-
-@if (!string.IsNullOrEmpty(executionTrace))
-{
-    <div class="card mb-3 border-success">
-        <div class="card-header bg-success text-white">Execution Trace</div>
-        <div class="card-body">
-            <p>@((MarkupString)RenderMarkdown(executionTrace))</p>
-        </div>
-    </div>
-}
 
 @code {
     private string message = "Calculate the sum of all even numbers between 1 and 20, then multiply by the count of odd numbers in the same range.";
@@ -77,8 +105,8 @@
 
     protected override Task OnInitializedAsync()
     {
-        var apiKey = Configuration["OPEN_ROUTER_API_KEY"] ??
-            throw new InvalidOperationException("OPEN_ROUTER_API_KEY is not set.");
+        var apiKey = Configuration["OpenRouter:ApiKey"] ?? Configuration["OPEN_ROUTER_API_KEY"] ??
+            throw new InvalidOperationException("OpenRouter:ApiKey (or OPEN_ROUTER_API_KEY) is not configured.");
         var openAIClientOptions = new OpenAIClientOptions { Endpoint = new Uri(endpoint) };
         var credential = new ApiKeyCredential(apiKey);
 

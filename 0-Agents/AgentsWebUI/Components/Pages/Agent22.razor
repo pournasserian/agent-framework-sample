@@ -2,61 +2,103 @@
 @using Markdig
 @inject IConfiguration Configuration
 
-<PageTitle>Agent 22</PageTitle>
-<h1>Agent 22 - Reflection / Self-Critique</h1>
-<p class="lead">The agent generates an initial response, then critically evaluates its own output for errors, gaps, and improvements.</p>
+<PageTitle>Agent 22 – Reflection</PageTitle>
 
-<div class="row">
-    <div class="col-md-8">
-        <div class="card mb-3">
-            <div class="card-header">Configuration</div>
+<div class="page-header">
+    <h1 class="page-title">🩷 Agent 22 – Reflection / Self-Critique</h1>
+    <p class="page-subtitle">The agent generates an initial response, then critically evaluates its own output for errors, gaps, and improvements.</p>
+</div>
+
+<div class="alert alert-info mb-4">
+    <strong>💡 Reflection:</strong> A prompting strategy where a second "critic" agent evaluates the initial response from a "responder" agent. The critic identifies errors, missing points, and rates quality — producing a structured self-critique that highlights areas for improvement.
+</div>
+
+<div class="agent-layout layout-4-8">
+
+    <!-- Left: Config Panel -->
+    <div>
+        <div class="card panel panel-config mb-4">
+            <div class="card-header">⚙️ Configuration</div>
             <div class="card-body">
-                <div class="form-group mb-3">
-                    <label class="form-label fw-semibold">Message</label>
-                    <textarea class="form-control" rows="3" @bind="message"></textarea>
+                <div class="mb-3">
+                    <label class="form-label">Question / Topic</label>
+                    <textarea class="form-control message-input" @bind="message"></textarea>
                 </div>
-                <button class="btn btn-primary me-2" @onclick="OnSubmit" disabled="@isLoading">
-                    @(isLoading ? "Running..." : "Submit")
+                <div class="mb-2 small text-muted">
+                    Pipeline: <span class="badge badge-primary">Responder</span> → <span class="badge badge-warning">Critic</span>
+                </div>
+                <button class="btn btn-prompting" @onclick="OnSubmit" disabled="@isLoading">
+                    @(isLoading ? "Running..." : "🪞 Run Reflection")
                 </button>
             </div>
         </div>
+        @if (logMessages.Count > 0)
+        {
+            <div class="card panel panel-log mb-4">
+                <div class="card-header">📋 Log</div>
+                <div class="card-body">
+                    <ul class="log-list mb-0">
+                        @foreach (var log in logMessages)
+                        {
+                            <li><code>@log</code></li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        }
     </div>
+
+    <!-- Right: Result Panel -->
+    <div>
+        @if (isLoading && string.IsNullOrEmpty(initialResponse))
+        {
+            <div class="card panel panel-result mb-4">
+                <div class="card-header">🪞 Generating Initial Response...</div>
+                <div class="card-body">
+                    <p class="response-pending">
+                        <span class="streaming-indicator" aria-label="Processing">
+                            <span></span><span></span><span></span>
+                        </span>
+                        Generating initial response...
+                    </p>
+                </div>
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(initialResponse))
+        {
+            <div class="card panel panel-result mb-3">
+                <div class="card-header">💬 Initial Response</div>
+                <div class="card-body">
+                    <div class="response-text">@((MarkupString)RenderMarkdown(initialResponse))</div>
+                </div>
+            </div>
+        }
+        @if (isLoading && !string.IsNullOrEmpty(initialResponse) && string.IsNullOrEmpty(critique))
+        {
+            <div class="card panel panel-result mb-4">
+                <div class="card-header">🔍 Applying Self-Critique...</div>
+                <div class="card-body">
+                    <p class="response-pending">
+                        <span class="streaming-indicator" aria-label="Processing">
+                            <span></span><span></span><span></span>
+                        </span>
+                        Critiquing...
+                    </p>
+                </div>
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(critique))
+        {
+            <div class="card panel panel-result mb-4" style="border-color: var(--color-danger);">
+                <div class="card-header" style="background-color: var(--color-danger); color: white;">🔍 Self-Critique</div>
+                <div class="card-body">
+                    <div class="response-text">@((MarkupString)RenderMarkdown(critique))</div>
+                </div>
+            </div>
+        }
+    </div>
+
 </div>
-
-@if (logMessages.Count > 0)
-{
-    <div class="card mb-3">
-        <div class="card-header">Log</div>
-        <div class="card-body">
-            <ul class="list-unstyled mb-0">
-                @foreach (var log in logMessages)
-                {
-                    <li class="small text-muted"><code>@log</code></li>
-                }
-            </ul>
-        </div>
-    </div>
-}
-
-@if (!string.IsNullOrEmpty(initialResponse))
-{
-    <div class="card mb-3 border-primary">
-        <div class="card-header bg-primary text-white">Initial Response</div>
-        <div class="card-body">
-            <p>@((MarkupString)RenderMarkdown(initialResponse))</p>
-        </div>
-    </div>
-}
-
-@if (!string.IsNullOrEmpty(critique))
-{
-    <div class="card mb-3 border-danger">
-        <div class="card-header bg-danger text-white">Self-Critique</div>
-        <div class="card-body">
-            <p>@((MarkupString)RenderMarkdown(critique))</p>
-        </div>
-    </div>
-}
 
 @code {
     private string message = "Explain the concept of quantum entanglement and its potential applications.";
@@ -77,8 +119,8 @@
 
     protected override Task OnInitializedAsync()
     {
-        var apiKey = Configuration["OPEN_ROUTER_API_KEY"] ??
-            throw new InvalidOperationException("OPEN_ROUTER_API_KEY is not set.");
+        var apiKey = Configuration["OpenRouter:ApiKey"] ?? Configuration["OPEN_ROUTER_API_KEY"] ??
+            throw new InvalidOperationException("OpenRouter:ApiKey (or OPEN_ROUTER_API_KEY) is not configured.");
         var openAIClientOptions = new OpenAIClientOptions { Endpoint = new Uri(endpoint) };
         var credential = new ApiKeyCredential(apiKey);
 

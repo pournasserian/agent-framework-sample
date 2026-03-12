@@ -2,36 +2,71 @@
 
 @inject IConfiguration Configuration
 
-<PageTitle>Agent 05</PageTitle>
+<PageTitle>Agent 05 – Structured Output</PageTitle>
 
-<h1>Agent 05 - Structured Output</h1>
-
-<p>Illustrates structured output by enforcing JSON schema response format to extract person details (name, age, occupation) from natural language input.</p>
-
-<div class="form-group mb-3">
-    <label>Instructions</label>
-    <InputTextArea @bind-Value="instructions" class="form-control"></InputTextArea>
-</div>
-<div class="form-group mb-3">
-    <label>Message</label>
-    <InputTextArea @bind-Value="message" class="form-control"></InputTextArea>
-</div>
-<div class="form-group mb-3">
-    <button type="submit" class="btn btn-primary" disabled="@isLoading" onclick="@OnSubmit">Submit</button>
-    <button type="submit" class="btn btn-primary" disabled="@isLoading" onclick="@OnSubmitStream">Stream</button>
+<div class="page-header">
+    <h1 class="page-title">📋 Agent 05 – Structured Output</h1>
+    <p class="page-subtitle">Illustrates structured output by enforcing JSON schema response format to extract person details (name, age, occupation) from natural language input.</p>
 </div>
 
-@if (!string.IsNullOrEmpty(response))
-{
+<div class="agent-layout layout-4-8">
+
+    <!-- Left: Config Panel -->
     <div>
-        <div class="mb-3 card">
+        <div class="card panel panel-config mb-4">
+            <div class="card-header">⚙️ Configuration</div>
             <div class="card-body">
-                <h5 class="card-title">Response</h5>
-                <p class="card-text">@((MarkupString)response)</p>
+                <div class="mb-3">
+                    <label class="form-label">Instructions</label>
+                    <InputTextArea @bind-Value="instructions" class="form-control instructions-input"></InputTextArea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Message</label>
+                    <InputTextArea @bind-Value="message" class="form-control message-input"></InputTextArea>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-primary" disabled="@isLoading" @onclick="OnSubmit">
+                        @(isLoading ? "Extracting..." : "🔍 Extract")
+                    </button>
+                    <button class="btn btn-outline-primary" disabled="@isLoading" @onclick="OnSubmitStream">
+                        @(isLoading ? "Streaming..." : "📡 Stream Extract")
+                    </button>
+                </div>
             </div>
         </div>
+        <div class="alert alert-info">
+            📄 Returns structured <code>PersonInfo</code> JSON with name, age, and occupation fields.
+        </div>
     </div>
-}
+
+    <!-- Right: Result Panel -->
+    <div>
+        @if (isLoading && string.IsNullOrEmpty(response))
+        {
+            <div class="card panel panel-result mb-4">
+                <div class="card-header">📊 Structured Result</div>
+                <div class="card-body">
+                    <p class="response-pending">
+                        <span class="streaming-indicator" aria-label="Processing">
+                            <span></span><span></span><span></span>
+                        </span>
+                        Extracting structured data...
+                    </p>
+                </div>
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(response))
+        {
+            <div class="card panel panel-result mb-4">
+                <div class="card-header">📊 Structured Result</div>
+                <div class="card-body">
+                    <div class="response-text">@((MarkupString)response)</div>
+                </div>
+            </div>
+        }
+    </div>
+
+</div>
 
 @code {
     private string message = "Please provide information about John Smith, who is a 35-year-old software engineer.";
@@ -45,8 +80,8 @@
 
     protected override Task OnInitializedAsync()
     {
-        var apiKey = Configuration["OPEN_ROUTER_API_KEY"] ??
-            throw new InvalidOperationException("OPEN_ROUTER_API_KEY is not set in.");
+        var apiKey = Configuration["OpenRouter:ApiKey"] ?? Configuration["OPEN_ROUTER_API_KEY"] ??
+            throw new InvalidOperationException("OpenRouter:ApiKey (or OPEN_ROUTER_API_KEY) is not configured.");
 
         var openAIClientOptions = new OpenAIClientOptions
         {

@@ -2,58 +2,94 @@
 @using Markdig
 @inject IConfiguration Configuration
 
-<PageTitle>Agent 17</PageTitle>
-<h1>Agent 17 - Chain-of-Thought</h1>
-<p class="lead">Guides the model to reason step-by-step before arriving at a final answer, improving accuracy on complex problems.</p>
+<PageTitle>Agent 17 – Chain-of-Thought</PageTitle>
 
-<div class="row">
-    <div class="col-md-8">
-        <div class="card mb-3">
-            <div class="card-header">Configuration</div>
+<div class="page-header">
+    <h1 class="page-title">🩷 Agent 17 – Chain-of-Thought</h1>
+    <p class="page-subtitle">Guides the model to reason step-by-step before arriving at a final answer, improving accuracy on complex problems.</p>
+</div>
+
+<div class="alert alert-info mb-4">
+    <strong>💡 Chain-of-Thought (CoT):</strong> A prompting strategy where the model is instructed to break down its reasoning into explicit steps before reaching a conclusion. This improves accuracy on math, logic, and multi-step problems by externalising the reasoning process.
+</div>
+
+<div class="agent-layout layout-4-8">
+
+    <!-- Left: Config Panel -->
+    <div>
+        <div class="card panel panel-config mb-4">
+            <div class="card-header">⚙️ Configuration</div>
             <div class="card-body">
-                <div class="form-group mb-3">
-                    <label class="form-label fw-semibold">Instructions</label>
-                    <textarea class="form-control" rows="3" @bind="instructions"></textarea>
+                <div class="mb-3">
+                    <label class="form-label">Instructions</label>
+                    <textarea class="form-control instructions-input" @bind="instructions"></textarea>
                 </div>
-                <div class="form-group mb-3">
-                    <label class="form-label fw-semibold">Message</label>
-                    <textarea class="form-control" rows="3" @bind="message"></textarea>
+                <div class="mb-3">
+                    <label class="form-label">Message</label>
+                    <textarea class="form-control message-input" @bind="message"></textarea>
                 </div>
-                <button class="btn btn-primary me-2" @onclick="OnSubmit" disabled="@isLoading">
-                    @(isLoading ? "Running..." : "Submit")
-                </button>
-                <button class="btn btn-outline-primary" @onclick="OnSubmitStream" disabled="@isLoading">
-                    @(isLoading ? "Running..." : "Stream")
-                </button>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-prompting" @onclick="OnSubmit" disabled="@isLoading">
+                        @(isLoading ? "Running..." : "🩷 Submit")
+                    </button>
+                    <button class="btn btn-outline-secondary" @onclick="OnSubmitStream" disabled="@isLoading">
+                        @(isLoading ? "Running..." : "📡 Stream")
+                    </button>
+                </div>
             </div>
         </div>
     </div>
+
+    <!-- Right: Result Panel -->
+    <div>
+        @if (logMessages.Count > 0)
+        {
+            <div class="card panel panel-log mb-4">
+                <div class="card-header">📋 Log</div>
+                <div class="card-body">
+                    <ul class="log-list mb-0">
+                        @foreach (var log in logMessages)
+                        {
+                            <li><code>@log</code></li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        }
+        @if (isLoading && string.IsNullOrEmpty(response))
+        {
+            <div class="card panel panel-result mb-4">
+                <div class="card-header">🔗 Chain-of-Thought Response</div>
+                <div class="card-body">
+                    <p class="response-pending">
+                        <span class="streaming-indicator" aria-label="Processing">
+                            <span></span><span></span><span></span>
+                        </span>
+                        Reasoning step-by-step...
+                    </p>
+                </div>
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(response))
+        {
+            <div class="card panel panel-result mb-4">
+                <div class="card-header">
+                    🔗 Chain-of-Thought Response
+                    @if (isLoading)
+                    {
+                        <span class="streaming-indicator ms-2" aria-label="Streaming">
+                            <span></span><span></span><span></span>
+                        </span>
+                    }
+                </div>
+                <div class="card-body">
+                    <div class="response-text">@((MarkupString)response)</div>
+                </div>
+            </div>
+        }
+    </div>
+
 </div>
-
-@if (logMessages.Count > 0)
-{
-    <div class="card mb-3">
-        <div class="card-header">Log</div>
-        <div class="card-body">
-            <ul class="list-unstyled mb-0">
-                @foreach (var log in logMessages)
-                {
-                    <li class="small text-muted"><code>@log</code></li>
-                }
-            </ul>
-        </div>
-    </div>
-}
-
-@if (!string.IsNullOrEmpty(response))
-{
-    <div class="card mb-3">
-        <div class="card-header">Response</div>
-        <div class="card-body">
-            <p>@((MarkupString)response)</p>
-        </div>
-    </div>
-}
 
 @code {
     private string message = "A farmer has 17 sheep. All but 9 run away. How many sheep does the farmer have left? Show your reasoning.";
@@ -70,8 +106,8 @@
 
     protected override Task OnInitializedAsync()
     {
-        var apiKey = Configuration["OPEN_ROUTER_API_KEY"] ??
-            throw new InvalidOperationException("OPEN_ROUTER_API_KEY is not set.");
+        var apiKey = Configuration["OpenRouter:ApiKey"] ?? Configuration["OPEN_ROUTER_API_KEY"] ??
+            throw new InvalidOperationException("OpenRouter:ApiKey (or OPEN_ROUTER_API_KEY) is not configured.");
         var openAIClientOptions = new OpenAIClientOptions { Endpoint = new Uri(endpoint) };
         var credential = new ApiKeyCredential(apiKey);
         var chatClient = new ChatClient(modelName, credential, openAIClientOptions);

@@ -1,32 +1,94 @@
 ﻿@page "/agent15"
 @inject IConfiguration Configuration
 
-<PageTitle>Agent 15</PageTitle>
+<PageTitle>Agent 15 – Declarative Agent</PageTitle>
 
-<h1>Agent 15 - Declartive Agent</h1>
-
-<p>Uses declarative agent configuration via YAML, defining output schema for structured responses with specified temperature and model options.</p>
-
-<div class="form-group mb-3">
-    <label>Message</label>
-    <InputTextArea @bind-Value="message" class="form-control"></InputTextArea>
-</div>
-<div class="form-group mb-3">
-    <button type="submit" class="btn btn-primary" disabled="@isLoading" onclick="@OnSubmit">Submit</button>
-    <button type="submit" class="btn btn-primary" disabled="@isLoading" onclick="@OnSubmitStream">Stream</button>
+<div class="page-header">
+    <h1 class="page-title">⚠️ Agent 15 – Declarative Agent</h1>
+    <p class="page-subtitle">Uses declarative agent configuration via YAML, defining output schema for structured responses with specified temperature and model options.</p>
 </div>
 
-@if (!string.IsNullOrEmpty(response))
-{
+<div class="agent-layout layout-4-8">
+
+    <!-- Left: Config Panel -->
     <div>
-        <div class="mb-3 card">
+        <div class="card panel panel-config mb-4">
+            <div class="card-header">⚙️ YAML Agent Definition</div>
             <div class="card-body">
-                <h5 class="card-title">Response</h5>
-                <p class="card-text pre"><code>@response</code></p>
+                <div class="mb-3">
+                    <label class="form-label">Agent YAML Definition</label>
+                    <pre class="bg-light border rounded p-2 small"><code>kind: Prompt
+name: Assistant
+description: Helpful assistant
+instructions: You are a helpful assistant.
+  You answer questions in the language
+  specified by the user. You return your
+  answers in a JSON format.
+model:
+  options:
+    temperature: 0.9
+    topP: 0.95
+outputSchema:
+  properties:
+    language:
+      type: string
+      required: true
+    answer:
+      type: string
+      required: true</code></pre>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Message</label>
+                    <InputTextArea @bind-Value="message" class="form-control message-input"></InputTextArea>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-warning" disabled="@isLoading" @onclick="OnSubmit">
+                        @(isLoading ? "Running..." : "⚠️ Submit")
+                    </button>
+                    <button class="btn btn-outline-secondary" disabled="@isLoading" @onclick="OnSubmitStream">
+                        @(isLoading ? "Streaming..." : "📡 Stream")
+                    </button>
+                </div>
             </div>
         </div>
     </div>
-}
+
+    <!-- Right: Result Panel -->
+    <div>
+        @if (isLoading && string.IsNullOrEmpty(response))
+        {
+            <div class="card panel panel-result mb-4">
+                <div class="card-header">📤 Structured Response</div>
+                <div class="card-body">
+                    <p class="response-pending">
+                        <span class="streaming-indicator" aria-label="Processing">
+                            <span></span><span></span><span></span>
+                        </span>
+                        Waiting for structured response...
+                    </p>
+                </div>
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(response))
+        {
+            <div class="card panel panel-result mb-4">
+                <div class="card-header">
+                    📤 Structured Response (JSON)
+                    @if (isLoading)
+                    {
+                        <span class="streaming-indicator ms-2" aria-label="Streaming">
+                            <span></span><span></span><span></span>
+                        </span>
+                    }
+                </div>
+                <div class="card-body">
+                    <pre class="response-text"><code>@response</code></pre>
+                </div>
+            </div>
+        }
+    </div>
+
+</div>
 
 @code {
     private string message = "Tell me a long joke about a pirate. It should be at least two pargraphs.";
@@ -62,8 +124,8 @@
 
     protected override Task OnInitializedAsync()
     {
-        var apiKey = Configuration["OPEN_ROUTER_API_KEY"] ??
-            throw new InvalidOperationException("OPEN_ROUTER_API_KEY is not set in.");
+        var apiKey = Configuration["OpenRouter:ApiKey"] ?? Configuration["OPEN_ROUTER_API_KEY"] ??
+            throw new InvalidOperationException("OpenRouter:ApiKey (or OPEN_ROUTER_API_KEY) is not configured.");
 
         var openAIClientOptions = new OpenAIClientOptions
         {
