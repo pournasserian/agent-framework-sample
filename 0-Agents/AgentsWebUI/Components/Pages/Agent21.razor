@@ -29,7 +29,7 @@
                     Tools: <span class="badge badge-primary">SearchWeb</span> <span class="badge badge-success">Calculate</span> <span class="badge badge-primary">LookupFact</span>
                 </div>
                 <div class="d-flex gap-2 flex-wrap">
-                    <button class="btn" style="background-color:#e83e8c;color:white;" @onclick="OnSubmit" disabled="@isLoading">
+                    <button class="btn btn-prompting" @onclick="OnSubmit" disabled="@isLoading">
                         @(isLoading ? "Running..." : "⚡ Submit")
                     </button>
                     <button class="btn btn-outline-secondary" @onclick="OnSubmitStream" disabled="@isLoading">

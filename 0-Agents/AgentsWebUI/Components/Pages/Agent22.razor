@@ -27,7 +27,7 @@
                 <div class="mb-2 small text-muted">
                     Pipeline: <span class="badge badge-primary">Responder</span> → <span class="badge badge-warning">Critic</span>
                 </div>
-                <button class="btn" style="background-color:#e83e8c;color:white;" @onclick="OnSubmit" disabled="@isLoading">
+                <button class="btn btn-prompting" @onclick="OnSubmit" disabled="@isLoading">
                     @(isLoading ? "Running..." : "🪞 Run Reflection")
                 </button>
             </div>

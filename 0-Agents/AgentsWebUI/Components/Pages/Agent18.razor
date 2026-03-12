@@ -27,7 +27,7 @@
                 <div class="mb-2 small text-muted">
                     Spawns 3 branches: <span class="badge badge-primary">Analytical</span> <span class="badge badge-success">Creative</span> <span class="badge badge-primary">Practical</span>
                 </div>
-                <button class="btn" style="background-color:#e83e8c;color:white;" @onclick="OnSubmit" disabled="@isLoading">
+                <button class="btn btn-prompting" @onclick="OnSubmit" disabled="@isLoading">
                     @(isLoading ? "Running..." : "🌳 Run Tree of Thoughts")
                 </button>
             </div>
