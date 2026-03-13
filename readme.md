@@ -154,7 +154,8 @@ agent-framework-sample/
 │   └── AgentsWebUI/
 │       ├── Components/
 │       │   ├── Layout/          # MainLayout, NavMenu
-│       │   └── Pages/           # Home + Agent01-Agent23
+│       │   └── Pages/           # Home
+|       │      └── Agents/       # Agent01-Agent23
 │       ├── wwwroot/
 │       │   └── app.css          # Central design system CSS
 │       ├── Program.cs
