@@ -1,0 +1,120 @@
+﻿@page "/workflow01"
+@inject IConfiguration Configuration
+
+<PageTitle>Workflow 01 – </PageTitle>
+<div class="page-header">
+    <h1 class="page-title">🤖 Workflow 01 – </h1>
+    <p class="page-subtitle">Workflow description goes here!</p>
+</div>
+
+<div class="agent-layout layout-4-8">
+
+    <!-- Left: Config Panel -->
+    <div>
+        <div class="card panel panel-config mb-4">
+            <div class="card-header">⚙️ Configuration</div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Message</label>
+                    <InputTextArea @bind-Value="message" class="form-control message-input"></InputTextArea>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-outline-primary" disabled="@isLoading" @onclick="OnSubmitStream">
+                        @(isLoading ? "Streaming..." : "📡 Stream")
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: Result Panel -->
+    <div>
+        @if (!string.IsNullOrEmpty(response))
+        {
+            <div class="card panel panel-result mb-4">
+                <div class="card-header">
+                    💬 Response
+                    @if (isLoading)
+                    {
+                        <span class="streaming-indicator ms-2" aria-label="Streaming">
+                            <span></span><span></span><span></span>
+                        </span>
+                    }
+                </div>
+                <div class="card-body">
+                    <div class="response-text">@response</div>
+                </div>
+            </div>
+        }
+    </div>
+
+</div>
+
+@code {
+    private string message = "Hello World!";
+    private string modelName = "openai/gpt-4.1-nano";
+    private string endpoint = "https://openrouter.ai/api/v1";
+    private Workflow workflow = default!;
+    private string response = string.Empty;
+    private bool isLoading = false;
+
+    protected override Task OnInitializedAsync()
+    {
+        var apiKey = Configuration["OpenRouter:ApiKey"] ?? Configuration["OPEN_ROUTER_API_KEY"] ??
+            throw new InvalidOperationException("OpenRouter:ApiKey (or OPEN_ROUTER_API_KEY) is not configured.");
+
+        var openAIClientOptions = new OpenAIClientOptions
+        {
+            Endpoint = new Uri(endpoint),
+        };
+
+        var credential = new ApiKeyCredential(apiKey);
+        var chatClient = new ChatClient(modelName, credential, openAIClientOptions);
+
+        var frenchAgent = GetTranslationAgent("French", chatClient);
+        var spanishAgent = GetTranslationAgent("Spanish", chatClient);
+        var englishAgent = GetTranslationAgent("English", chatClient);
+
+        workflow = new WorkflowBuilder(frenchAgent)
+            .AddEdge(frenchAgent, spanishAgent)
+            .AddEdge(spanishAgent, englishAgent)
+            .Build();
+
+        return base.OnInitializedAsync();
+    }
+
+    private async Task OnSubmitStream()
+    {
+        response = string.Empty;
+        isLoading = true;
+
+        // Execute the workflow
+        await using StreamingRun run = await InProcessExecution.RunStreamingAsync(
+            workflow,
+            new ChatMessage(ChatRole.User, message));
+
+        // Must send the turn token to trigger the agents.
+        // The agents are wrapped as executors. When they receive messages,
+        // they will cache the messages and only start processing when they receive a TurnToken.
+        await run.TrySendMessageAsync(new TurnToken(emitEvents: true));
+        await foreach (WorkflowEvent evt in run.WatchStreamAsync())
+        {
+            if (evt is AgentResponseUpdateEvent executorComplete)
+            {
+                response += $"{executorComplete.Data}";
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+
+
+        isLoading = false;
+    }
+
+    private ChatClientAgent GetTranslationAgent(string targetLanguage, ChatClient chatClient)
+    {
+        return chatClient.AsAIAgent(
+            name: $"{targetLanguage} Translator",
+            instructions: $"You are a translation assistant that translates the provided text to {targetLanguage}.");
+
+    }
+}
