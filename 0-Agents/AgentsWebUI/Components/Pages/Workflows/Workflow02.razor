@@ -154,17 +154,6 @@
             }
         }
 
-
-        await foreach (WorkflowEvent evt in run.WatchStreamAsync())
-        {
-            if (evt is AgentResponseUpdateEvent executorComplete)
-            {
-                response += $"{executorComplete.Data}";
-                await InvokeAsync(StateHasChanged);
-            }
-        }
-
-
         isLoading = false;
     }
 
