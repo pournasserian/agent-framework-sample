@@ -100,12 +100,36 @@
             }
             value.Add(update);
 
+            // Rebuild the full response from all buffered message segments
+            response = string.Empty;
             foreach (var (messageId, segments) in buffer)
             {
-                string combinedText = string.Concat(segments);
-                response = $"{segments[0].AuthorName}: {combinedText}\n";
-                await InvokeAsync(StateHasChanged);
+                if (segments.Count == 0)
+                {
+                    continue;
+                }
+
+                var sb = new System.Text.StringBuilder();
+                foreach (var segment in segments)
+                {
+                    if (!string.IsNullOrEmpty(segment.Text))
+                    {
+                        sb.Append(segment.Text);
+                    }
+                }
+
+                string combinedText = sb.ToString();
+                if (!string.IsNullOrEmpty(combinedText))
+                {
+                    if (!string.IsNullOrEmpty(response))
+                    {
+                        response += "\n";
+                    }
+                    response += $"{segments[0].AuthorName}: {combinedText}";
+                }
             }
+
+            await InvokeAsync(StateHasChanged);
         }
 
         isLoading = false;
