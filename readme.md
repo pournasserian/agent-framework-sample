@@ -145,6 +145,14 @@ Then open your browser to the URL shown in the terminal output (e.g., `http://lo
 | Agent 23 | Self-Refine | Iteratively improves output through multiple critique-and-refine rounds. |
 
 ---
+### 🧠 Workflows (3 samples)
+| Workflow | Name | Description |
+|----------|------|-------------|
+| Workflow 01 | Translation Chain | Translates a user’s message sequentially from French → Spanish → English using a chain of translation agents. |
+| Workflow 02 | Group Chat Tool Approval | Runs a group chat workflow between QA and DevOps agents that requires user approval for deployment tools. |
+| Workflow 03 | Workflow As Agent | Executes a workflow as a single agent by concurrently running French and English language agents and aggregating their responses. |
+
+---
 
 ## 📁 Project Structure
 
