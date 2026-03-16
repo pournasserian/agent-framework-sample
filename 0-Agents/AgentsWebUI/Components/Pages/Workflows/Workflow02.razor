@@ -1,11 +1,23 @@
 ﻿@page "/workflow02"
 @inject IConfiguration Configuration
-@inject IJSRuntime JsRuntime
+@inject IJSRuntime JS
 
+<script src="https://cdn.jsdelivr.net/npm/mermaid/dist/mermaid.min.js"></script>
+<script>mermaid.initialize({ startOnLoad: true });</script>
 <PageTitle>Workflow 02 – Group Chat Tool Approval</PageTitle>
 <div class="page-header">
     <h1 class="page-title">🤖 Workflow 02 – Group Chat Tool Approval</h1>
     <p class="page-subtitle">Runs a group chat workflow between QA and DevOps agents that requires user approval for deployment tools.</p>
+    <div class="mermaid">
+        graph LR
+            User --> QAEngineer
+            QAEngineer -->|Runs tests| DevOpsEngineer
+            DevOpsEngineer --> Decision{Tool Approved?}
+            Decision -->|Yes| Deploy[DeployToProduction]
+            Decision -->|No| End[End Workflow]
+            Deploy --> Response[Display Responses]
+            End --> Response
+    </div>
 </div>
 
 <div class="agent-layout layout-4-8">
@@ -60,6 +72,15 @@
     private Workflow workflow = default!;
     private string response = string.Empty;
     private bool isLoading = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Call the JS function once when the component is first rendered
+            await JS.InvokeVoidAsync("window.initializeMermaid");
+        }
+    }
 
     protected override Task OnInitializedAsync()
     {
@@ -205,7 +226,7 @@
 
     private async Task<bool> FunctionCallConfirm(string message)
     {
-        bool confirmed = await JsRuntime.InvokeAsync<bool>("confirm", message);
+        bool confirmed = await JS.InvokeAsync<bool>("confirm", message);
         return confirmed;
     }
         
