@@ -18,15 +18,31 @@
     <Routes @rendermode="InteractiveServer" />
     <ReconnectModal />
     <!-- Mermaid JS CDN -->
-    <script type="module">
-            import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
-    
+    <script>
+        (function () {
+            let mermaidModulePromise = null;
+
             // Manually attach it to the window so Blazor can see it
             window.initializeMermaid = function () {
-                console.log("Initializing Mermaid...");
-                mermaid.initialize({ startOnLoad: true });
-                mermaid.contentLoaded(); // Specifically for dynamic content
+                if (!mermaidModulePromise) {
+                    mermaidModulePromise = import('https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs')
+                        .then(function (mod) {
+                            var mermaid = mod.default || mod;
+                            console.log("Initializing Mermaid...");
+                            mermaid.initialize({ startOnLoad: true });
+                            mermaid.contentLoaded(); // Specifically for dynamic content
+                        })
+                        .catch(function (err) {
+                            console.error("Failed to load Mermaid", err);
+                        });
+                } else {
+                    mermaidModulePromise.then(function (mod) {
+                        var mermaid = mod.default || mod;
+                        mermaid.contentLoaded(); // Refresh for dynamic content
+                    });
+                }
             };
+        })();
     </script>
     <script src="@Assets["_framework/blazor.web.js"]"></script>
 </body>
