@@ -1,0 +1,243 @@
+﻿@page "/workflow02"
+@inject IConfiguration Configuration
+@inject IJSRuntime JsRuntime
+
+<PageTitle>Workflow 02 – Group Chat Tool Approval</PageTitle>
+<div class="page-header">
+    <h1 class="page-title">🤖 Workflow 02 – Group Chat Tool Approval</h1>
+    <p class="page-subtitle">Runs a group chat workflow between QA and DevOps agents that requires user approval for deployment tools.</p>
+</div>
+
+<div class="agent-layout layout-4-8">
+
+    <!-- Left: Config Panel -->
+    <div>
+        <div class="card panel panel-config mb-4">
+            <div class="card-header">⚙️ Configuration</div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Message</label>
+                    <InputTextArea @bind-Value="message" class="form-control message-input"></InputTextArea>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-outline-primary" disabled="@isLoading" @onclick="OnSubmitStream">
+                        @(isLoading ? "Streaming..." : "📡 Stream")
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: Result Panel -->
+    <div>
+        @if (!string.IsNullOrEmpty(response))
+        {
+            <div class="card panel panel-result mb-4">
+                <div class="card-header">
+                    💬 Response
+                    @if (isLoading)
+                    {
+                        <span class="streaming-indicator ms-2" aria-label="Streaming">
+                            <span></span><span></span><span></span>
+                        </span>
+                    }
+                </div>
+                <div class="card-body">
+                    <div class="response-text">@response</div>
+                </div>
+            </div>
+        }
+    </div>
+
+</div>
+
+@code {
+    
+#pragma warning disable MEAI001
+    private string message = "We need to deploy version 2.4.0 to production. Please coordinate the deployment.";
+    private string modelName = "openai/gpt-4.1-nano";
+    private string endpoint = "https://openrouter.ai/api/v1";
+    private Workflow workflow = default!;
+    private string response = string.Empty;
+    private bool isLoading = false;
+
+    protected override Task OnInitializedAsync()
+    {
+        var apiKey = Configuration["OpenRouter:ApiKey"] ?? Configuration["OPEN_ROUTER_API_KEY"] ??
+            throw new InvalidOperationException("OpenRouter:ApiKey (or OPEN_ROUTER_API_KEY) is not configured.");
+
+        var openAIClientOptions = new OpenAIClientOptions
+        {
+            Endpoint = new Uri(endpoint),
+        };
+
+        var credential = new ApiKeyCredential(apiKey);
+        var chatClient = new ChatClient(modelName, credential, openAIClientOptions);
+
+        var qaEngineer = GetQAAgent(chatClient);
+        var devopsEngineer = GetDevopsEngineerAgent(chatClient);
+
+        var manager = new DeploymentGroupChatManager([qaEngineer, devopsEngineer])
+        {
+            MaximumIterationCount = 4  // Limit to 4 rounds
+        };
+
+        workflow = AgentWorkflowBuilder
+            .CreateGroupChatBuilderWith(_ => manager)
+            .AddParticipants(qaEngineer, devopsEngineer)
+            .Build();
+
+        return base.OnInitializedAsync();
+    }
+
+    private async Task OnSubmitStream()
+    {
+        response = string.Empty;
+        isLoading = true;
+                
+        // Execute the workflow
+        await using StreamingRun run = await InProcessExecution.RunStreamingAsync(
+            workflow,
+            new ChatMessage(ChatRole.User, message));
+        
+        // Must send the turn token to trigger the agents.
+        // The agents are wrapped as executors. When they receive messages,
+        // they will cache the messages and only start processing when they receive a TurnToken.
+        await run.TrySendMessageAsync(new TurnToken(emitEvents: true));
+
+        string? lastExecutorId = null;
+        await foreach (WorkflowEvent evt in run.WatchStreamAsync())
+        {
+            switch (evt)
+            {
+                case RequestInfoEvent e:
+                    {
+                        if (e.Request.TryGetDataAs(out FunctionApprovalRequestContent? approvalRequestContent))
+                        {
+                            var approvalMessage = $"Approval required for from agent: {e.Request.PortInfo.PortId} tool call: {approvalRequestContent.FunctionCall.Name} with arguments {JsonSerializer.Serialize(approvalRequestContent.FunctionCall.Arguments)}";
+                            var confirmed = await FunctionCallConfirm(approvalMessage);
+                            await run.SendResponseAsync(e.Request.CreateResponse(approvalRequestContent.CreateResponse(approved: confirmed)));
+                            
+                            if (confirmed)
+                            {
+                                response += $"Tool: {approvalRequestContent.FunctionCall.Name} approved.\n";
+                            }
+                            else
+                            {
+                                response += $"Tool: {approvalRequestContent.FunctionCall.Name} denied.\n";
+                            }
+                            await InvokeAsync(StateHasChanged);
+
+                        }
+
+                        break;
+                    }
+
+                case AgentResponseUpdateEvent e:
+                    {
+                        if (e.ExecutorId != lastExecutorId)
+                        {
+                            if (lastExecutorId is not null)
+                            {
+                                response += "\n\n"; // Add spacing between different executors' responses
+                            }
+
+                            response += $"- {e.ExecutorId}: ";
+                            lastExecutorId = e.ExecutorId;
+                        }
+
+                        response += e.Update.Text;
+                        await InvokeAsync(StateHasChanged);
+
+                        break;
+                    }
+            }
+        }
+
+        isLoading = false;
+    }
+
+    private ChatClientAgent GetQAAgent(ChatClient chatClient)
+    {
+        var agent = new ChatClientAgent(
+              chatClient.AsIChatClient(),
+              instructions: "You are a QA engineer responsible for running tests before deployment. Run the appropriate test suites and report results clearly.",
+              name: "QAEngineer",
+              description: "QA engineer who runs tests",
+              [AIFunctionFactory.Create(RunTests)]);
+        return agent;
+    }
+
+    private ChatClientAgent GetDevopsEngineerAgent(ChatClient chatClient)
+    {
+        var agent = new ChatClientAgent(
+            chatClient.AsIChatClient(),
+            instructions: "You are a DevOps engineer responsible for deployments. First check staging status and create a rollback plan, then proceed with production deployment. Always ensure safety measures are in place before deploying.",
+            name: "DevOpsEngineer",
+            description: "DevOps engineer who handles deployments",
+            [
+                AIFunctionFactory.Create(CheckStagingStatus),
+                AIFunctionFactory.Create(CreateRollbackPlan),
+                new ApprovalRequiredAIFunction(AIFunctionFactory.Create(DeployToProduction))
+            ]);
+        return agent;
+    }
+
+    // Tool definitions - These are called by the agents during workflow execution
+    [Description("Run automated tests for the application.")]
+    private static string RunTests([Description("Name of the test suite to run")] string testSuite)
+        => $"Test suite '{testSuite}' completed: 47 passed, 0 failed, 0 skipped";
+
+    [Description("Check the current status of the staging environment.")]
+    private static string CheckStagingStatus()
+        => "Staging environment: Healthy, Version 2.3.0 deployed, All services running";
+
+    [Description("Deploy specified components to production. Requires human approval.")]
+    private static string DeployToProduction(
+        [Description("The version to deploy")] string version,
+        [Description("Comma-separated list of components to deploy")] string components)
+        => $"Production deployment complete: Version {version}, Components: {components}";
+
+    [Description("Create a rollback plan for the deployment.")]
+    private static string CreateRollbackPlan([Description("The version being deployed")] string version)
+        => $"Rollback plan created for version {version}: Automated rollback to v2.2.0 if health checks fail within 5 minutes";
+
+
+    private async Task<bool> FunctionCallConfirm(string message)
+    {
+        bool confirmed = await JsRuntime.InvokeAsync<bool>("confirm", message);
+        return confirmed;
+    }
+        
+    internal sealed class DeploymentGroupChatManager : GroupChatManager
+    {
+        private readonly IReadOnlyList<AIAgent> _agents;
+
+        public DeploymentGroupChatManager(IReadOnlyList<AIAgent> agents)
+        {
+            this._agents = agents;
+        }
+
+        protected override ValueTask<AIAgent> SelectNextAgentAsync(
+            IReadOnlyList<ChatMessage> history,
+            CancellationToken cancellationToken = default)
+        {
+            if (history.Count == 0)
+            {
+                throw new InvalidOperationException("Conversation is empty; cannot select next speaker.");
+            }
+
+            // First speaker after initial user message
+            if (this.IterationCount == 0)
+            {
+                AIAgent qaAgent = this._agents.First(a => a.Name == "QAEngineer");
+                return new ValueTask<AIAgent>(qaAgent);
+            }
+
+            // Subsequent speakers are DevOps Engineer
+            AIAgent devopsAgent = this._agents.First(a => a.Name == "DevOpsEngineer");
+            return new ValueTask<AIAgent>(devopsAgent);
+        }
+    }
+#pragma warning restore MEAI001
+}
