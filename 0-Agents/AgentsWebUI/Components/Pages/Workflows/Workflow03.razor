@@ -1,10 +1,20 @@
 ﻿@page "/workflow03"
 @inject IConfiguration Configuration
+@inject IJSRuntime JS
 
 <PageTitle>Workflow 03 – Workflow As Agent</PageTitle>
 <div class="page-header">
     <h1 class="page-title">🤖 Workflow 03 – Workflow As Agent</h1>
     <p class="page-subtitle">Executes a workflow as a single agent by concurrently running French and English language agents and aggregating their responses.</p>
+    <div class="mermaid">
+graph LR
+    UserInput --> Start
+    Start -- "fan-out" --> FrenchAgent
+    Start -- "fan-out" --> EnglishAgent
+    FrenchAgent -- "fan-in" --> ConcurrentAggregationExecutor
+    EnglishAgent -- "fan-in" --> ConcurrentAggregationExecutor
+    ConcurrentAggregationExecutor --> Response
+    </div>
 </div>
 
 <div class="agent-layout layout-4-8">
@@ -57,6 +67,15 @@
     private Workflow workflow = default!;
     private string response = string.Empty;
     private bool isLoading = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            // Call the JS function once when the component is first rendered
+            await JS.InvokeVoidAsync("window.initializeMermaid");
+        }
+    }
 
     protected override Task OnInitializedAsync()
     {
