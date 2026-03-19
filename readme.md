@@ -1,6 +1,6 @@
 # Microsoft Agent Framework Samples
 
-A **Blazor Web Application** built on **.NET 10** that showcases **23 interactive samples** demonstrating the [Microsoft Agent Framework](https://learn.microsoft.com/en-us/dotnet/ai/microsoft-extensions-ai) (`Microsoft.Extensions.AI.Agents`) across **6 categories** — from basic request/response through advanced prompting strategies.
+A **Blazor Web Application** built on **.NET 10** that showcases **24 interactive samples** demonstrating the [Microsoft Agent Framework](https://learn.microsoft.com/en-us/dotnet/ai/microsoft-extensions-ai) (`Microsoft.Extensions.AI.Agents`) across **6 categories** — from basic request/response through advanced prompting strategies.
 
 > **Live Demo**: Run the app and navigate to `http://localhost:5xxx` to explore the interactive samples.
 
@@ -8,7 +8,7 @@ A **Blazor Web Application** built on **.NET 10** that showcases **23 interactiv
 
 ## ✨ Features
 
-- 23 interactive agent samples organized in 6 categories
+- 24 interactive agent samples organized in 6 categories
 - Modern, responsive UI built with Bootstrap 5 and a central CSS design system
 - Real-time streaming responses
 - Multi-turn conversation threads
@@ -91,7 +91,7 @@ Then open your browser to the URL shown in the terminal output (e.g., `http://lo
 
 ---
 
-### 🔧 Functions & Tools (4 samples)
+### 🔧 Functions & Tools (5 samples)
 
 | Agent | Name | Description |
 |-------|------|-------------|
@@ -99,6 +99,7 @@ Then open your browser to the URL shown in the terminal output (e.g., `http://lo
 | Agent 04 | Functions with User Approval | Adds a user-approval step before any function is executed. |
 | Agent 10 | Agent as Function | Uses one agent as a callable tool for another agent. |
 | Agent 13 | Plugins | Plugin integration adding external services (weather, current time) via dependency injection. |
+| Agent 24 | Skills | Provides a UI for configuring and running an agent with file-based skills via `FileAgentSkillsProvider`, demonstrating custom instructions/message panels and streaming responses. |
 
 ---
 
@@ -163,8 +164,8 @@ agent-framework-sample/
 │       ├── Components/
 │       │   ├── Layout/          # MainLayout, NavMenu
 │       │   └── Pages/           # Home
-|       │      └── Agents/       # Agent01-Agent23
-|       │      └── Workflows/    # Workflow01-Workflow03
+│       │       ├── Agents/       # Agent01-Agent24
+│       │       └── Workflows/    # Workflow01-Workflow03
 │       ├── wwwroot/
 │       │   └── app.css          # Central design system CSS
 │       ├── Program.cs

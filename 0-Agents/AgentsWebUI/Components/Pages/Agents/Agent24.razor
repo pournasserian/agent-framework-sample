@@ -1,0 +1,140 @@
+﻿@page "/agent24"
+@inject IConfiguration Configuration
+@inject IWebHostEnvironment WebHostEnvironment
+
+<PageTitle>Agent 24 – Skills</PageTitle>
+
+<div class="page-header">
+    <h1 class="page-title">🤖 Agent 24 – Skills</h1>
+    <p class="page-subtitle">Provides a UI for configuring and running an agent with file-based skills via `FileAgentSkillsProvider`, demonstrating custom instructions/message panels and streaming responses.</p>
+</div>
+
+<div class="agent-layout layout-4-8">
+
+    <!-- Left: Config Panel -->
+    <div>
+        <div class="card panel panel-config mb-4">
+            <div class="card-header">⚙️ Configuration</div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label class="form-label">Message</label>
+                    <InputTextArea @bind-Value="message" class="form-control message-input"></InputTextArea>
+                </div>
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-primary" disabled="@isLoading" @onclick="OnSubmit">
+                        @(isLoading ? "Running..." : "🚀 Submit")
+                    </button>
+                    <button class="btn btn-outline-primary" disabled="@isLoading" @onclick="OnSubmitStream">
+                        @(isLoading ? "Streaming..." : "📡 Stream")
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right: Result Panel -->
+    <div>
+        @if (isLoading && string.IsNullOrEmpty(response))
+        {
+            <div class="card panel panel-result mb-4">
+                <div class="card-header">💬 Response</div>
+                <div class="card-body">
+                    <p class="response-pending">
+                        <span class="streaming-indicator" aria-label="Processing">
+                            <span></span><span></span><span></span>
+                        </span>
+                        Waiting for response...
+                    </p>
+                </div>
+            </div>
+        }
+        @if (!string.IsNullOrEmpty(response))
+        {
+            <div class="card panel panel-result mb-4">
+                <div class="card-header">
+                    💬 Response
+                    @if (isLoading)
+                    {
+                        <span class="streaming-indicator ms-2" aria-label="Streaming">
+                            <span></span><span></span><span></span>
+                        </span>
+                    }
+                </div>
+                <div class="card-body">
+                    <div class="response-text">@((MarkupString)RenderMarkdown(response))</div>
+                </div>
+            </div>
+        }
+    </div>
+
+</div>
+
+@code {
+    private string message = "I had 3 client dinners and a $1,200 flight last week. Return a draft expense report and ask about any missing details.";
+    private string instructions = "You are a helpful assistant.";
+    private string modelName = "openai/gpt-4o";
+    private string endpoint = "https://openrouter.ai/api/v1";
+    private ChatClientAgent agent = default!;
+
+    private string response = string.Empty;
+    private bool isLoading = false;
+
+    protected override Task OnInitializedAsync()
+    {
+        var apiKey = Configuration["OpenRouter:ApiKey"] ?? Configuration["OPEN_ROUTER_API_KEY"] ??
+            throw new InvalidOperationException("OpenRouter:ApiKey (or OPEN_ROUTER_API_KEY) is not configured.");
+
+        var openAIClientOptions = new OpenAIClientOptions
+        {
+            Endpoint = new Uri(endpoint),
+        };
+
+        var credential = new ApiKeyCredential(apiKey);
+        var chatClient = new ChatClient(modelName, credential, openAIClientOptions);
+        var skillsProvider = new FileAgentSkillsProvider(skillPath: Path.Combine(WebHostEnvironment.WebRootPath, "skills"));
+
+        agent = chatClient.AsAIAgent(new ChatClientAgentOptions
+        {
+            Name = "SkillsAgent",
+            ChatOptions = new()
+            {
+                Instructions = instructions,
+            },
+            AIContextProviders = [skillsProvider],
+        });
+
+        return base.OnInitializedAsync();
+    }
+
+    private async Task OnSubmit()
+    {
+        response = "Processing...";
+        isLoading = true;
+
+        var agentResponse = await agent.RunAsync(message);
+
+        response = agentResponse.ToString();
+
+        isLoading = false;
+    }
+
+    private async Task OnSubmitStream()
+    {
+        response = string.Empty;
+        isLoading = true;
+
+        await foreach (var update in agent.RunStreamingAsync(message))
+        {
+            response += update.ToString();
+            await InvokeAsync(StateHasChanged);
+        }
+
+        isLoading = false;
+    }
+
+    private string RenderMarkdown(string value)
+    {
+        // Convert Markdown to HTML using Markdig
+        return Markdown.ToHtml(value, new MarkdownPipelineBuilder().UseAdvancedExtensions().Build());
+    }
+}
