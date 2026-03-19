@@ -164,8 +164,8 @@ agent-framework-sample/
 │       ├── Components/
 │       │   ├── Layout/          # MainLayout, NavMenu
 │       │   └── Pages/           # Home
-|       │      └── Agents/       # Agent01-Agent24
-|       │      └── Workflows/    # Workflow01-Workflow03
+│       │       ├── Agents/       # Agent01-Agent24
+│       │       └── Workflows/    # Workflow01-Workflow03
 │       ├── wwwroot/
 │       │   └── app.css          # Central design system CSS
 │       ├── Program.cs
