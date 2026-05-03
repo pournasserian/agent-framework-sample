@@ -91,7 +91,7 @@
 
         var credential = new ApiKeyCredential(apiKey);
         var chatClient = new ChatClient(modelName, credential, openAIClientOptions);
-        var skillsProvider = new FileAgentSkillsProvider(skillPath: Path.Combine(WebHostEnvironment.WebRootPath, "skills"));
+        var skillsProvider = new AgentSkillsProvider(skillPath: Path.Combine(WebHostEnvironment.WebRootPath, "skills"));
 
         agent = chatClient.AsAIAgent(new ChatClientAgentOptions
         {

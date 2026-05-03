@@ -136,9 +136,9 @@
         while (userInputRequests.Count > 0)
         {
             var userInputResponses = new List<Microsoft.Extensions.AI.ChatMessage>();
-            foreach (var functionApprovalRequest in userInputRequests.OfType<FunctionApprovalRequestContent>())
+            foreach (var functionApprovalRequest in userInputRequests.OfType<ToolApprovalRequestContent>())
             {
-                var confirmMessage = $"Do you want to approve the function call to {functionApprovalRequest.FunctionCall.Name}? ";
+                var confirmMessage = $"Do you want to approve the function call to {functionApprovalRequest.ToolCall.CallId}? ";
                 log += $"{confirmMessage}";
                 await InvokeAsync(StateHasChanged);
                 var confirmed = await FunctionCallConfirm(confirmMessage);
@@ -168,9 +168,9 @@
         while (userInputRequests.Count > 0)
         {
             var userInputResponses = new List<Microsoft.Extensions.AI.ChatMessage>();
-            foreach (var functionApprovalRequest in userInputRequests.OfType<FunctionApprovalRequestContent>())
+            foreach (var functionApprovalRequest in userInputRequests.OfType<ToolApprovalRequestContent>())
             {
-                var confirmMessage = $"Do you want to approve the function call to {functionApprovalRequest.FunctionCall.Name}? ";
+                var confirmMessage = $"Do you want to approve the function call to {functionApprovalRequest.ToolCall.CallId}? ";
                 log += $"{confirmMessage}";
                 await InvokeAsync(StateHasChanged);
                 var confirmed = await FunctionCallConfirm(confirmMessage);

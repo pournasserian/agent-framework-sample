@@ -162,7 +162,7 @@
         log += "Connected to Microsoft Learn MCP. Tools discovered:";
         await InvokeAsync(StateHasChanged);
         foreach (var t in mcpTools)
-            log += $"Tool: {t.Title}- {t.Name} <br /> {JsonSerializer.Serialize(t.AdditionalProperties)} <hr />";
+            log += $"Tool: {t.Title}- {t.Name} <br /> {JsonSerializer.Serialize(t.ReturnJsonSchema)} <hr />";
 
         var apiKey = Configuration["OpenRouter:ApiKey"] ?? Configuration["OPEN_ROUTER_API_KEY"] ??
             throw new InvalidOperationException("OpenRouter:ApiKey (or OPEN_ROUTER_API_KEY) is not configured.");
