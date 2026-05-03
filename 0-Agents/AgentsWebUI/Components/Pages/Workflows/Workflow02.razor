@@ -131,19 +131,19 @@
             {
                 case RequestInfoEvent e:
                     {
-                        if (e.Request.TryGetDataAs(out FunctionApprovalRequestContent? approvalRequestContent))
+                        if (e.Request.TryGetDataAs(out ToolApprovalRequestContent? approvalRequestContent))
                         {
-                            var approvalMessage = $"Approval required for from agent: {e.Request.PortInfo.PortId} tool call: {approvalRequestContent.FunctionCall.Name} with arguments {JsonSerializer.Serialize(approvalRequestContent.FunctionCall.Arguments)}";
+                            var approvalMessage = $"Approval required for from agent: {e.Request.PortInfo.PortId} tool call: {approvalRequestContent.ToolCall.CallId} with arguments {JsonSerializer.Serialize(approvalRequestContent.ToolCall.Annotations)}";
                             var confirmed = await FunctionCallConfirm(approvalMessage);
                             await run.SendResponseAsync(e.Request.CreateResponse(approvalRequestContent.CreateResponse(approved: confirmed)));
                             
                             if (confirmed)
                             {
-                                response += $"Tool: {approvalRequestContent.FunctionCall.Name} approved.\n";
+                                response += $"Tool: {approvalRequestContent.ToolCall.CallId} approved.\n";
                             }
                             else
                             {
-                                response += $"Tool: {approvalRequestContent.FunctionCall.Name} denied.\n";
+                                response += $"Tool: {approvalRequestContent.ToolCall.CallId} denied.\n";
                             }
                             await InvokeAsync(StateHasChanged);
 

@@ -106,10 +106,11 @@
         var credential = new ApiKeyCredential(apiKey);
 
         var chatClient = new OpenAIClient(credential, openAIClientOptions)
-            .GetResponsesClient(modelName)
+            .GetResponsesClient()
             .AsIChatClient().AsBuilder()
             .ConfigureOptions(o =>
                 {
+                    o.ModelId = modelName;
                     // o.Instructions = instructions;
                     o.RawRepresentationFactory = _ => new CreateResponseOptions()
                     {
