@@ -1,0 +1,25 @@
+{
+    "generation_info": {
+        "timestamp": "2026-09-18T22:25:17.296759+00:00",
+        "main_model": "claude-opus-5",
+        "generator_version": "2.0.0",
+        "repo_path": "/mnt/c/Projects/agent-framework-sample",
+        "commit_id": "d6e71e317d7e8fe1ac4a1c4fede6141962c1c1f3"
+    },
+    "statistics": {
+        "total_components": 987,
+        "leaf_nodes": 57,
+        "max_depth": 2
+    },
+    "files_generated": [
+        "overview.md",
+        "module_tree.json",
+        "first_module_tree.json",
+        "bootstrap_core_infrastructure.md",
+        "bootstrap_interactive_content_components.md",
+        "bootstrap_overlay_components.md",
+        "bootstrap_overlay_components_modal_dialogs.md",
+        "bootstrap_overlay_components_popper_positioned.md",
+        "bootstrap_overlay_components_toast.md"
+    ]
+}

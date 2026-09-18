@@ -1,0 +1,13 @@
+{
+    "token_budget": 200000,
+    "tokens_used": 0,
+    "caps": {
+        "per_file_bytes": 16384,
+        "per_class_files": 40,
+        "per_file_units": 25
+    },
+    "with_prose": false,
+    "classes": {},
+    "nodes": 0,
+    "edges": 0
+}

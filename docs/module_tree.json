@@ -1,0 +1,111 @@
+{
+    "bootstrap_core_infrastructure": {
+        "path": "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js",
+        "components": [
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.js::BaseComponent",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.js::Config",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.js::TemplateFactory",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.js::Backdrop",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.js::FocusTrap",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.js::ScrollBarHelper",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.js::Swipe",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.esm.js::BaseComponent",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.esm.js::Config",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.esm.js::TemplateFactory",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.esm.js::Backdrop",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.esm.js::FocusTrap",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.esm.js::ScrollBarHelper",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.esm.js::Swipe",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.js::BaseComponent",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.js::Config",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.js::TemplateFactory",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.js::Backdrop",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.js::FocusTrap",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.js::ScrollBarHelper",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.js::Swipe"
+        ],
+        "children": {}
+    },
+    "bootstrap_overlay_components": {
+        "path": "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js",
+        "components": [
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.js::Modal",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.js::Offcanvas",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.js::Dropdown",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.js::Tooltip",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.js::Popover",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.js::Toast",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.esm.js::Modal",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.esm.js::Offcanvas",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.esm.js::Dropdown",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.esm.js::Tooltip",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.esm.js::Popover",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.esm.js::Toast",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.js::Modal",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.js::Offcanvas",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.js::Dropdown",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.js::Tooltip",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.js::Popover",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.js::Toast"
+        ],
+        "children": {
+            "bootstrap_overlay_components_modal_dialogs": {
+                "components": [
+                    "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.js::Modal",
+                    "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.js::Offcanvas",
+                    "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.esm.js::Modal",
+                    "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.esm.js::Offcanvas",
+                    "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.js::Modal",
+                    "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.js::Offcanvas"
+                ],
+                "children": {}
+            },
+            "bootstrap_overlay_components_popper_positioned": {
+                "components": [
+                    "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.js::Dropdown",
+                    "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.js::Tooltip",
+                    "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.js::Popover",
+                    "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.esm.js::Dropdown",
+                    "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.esm.js::Tooltip",
+                    "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.esm.js::Popover",
+                    "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.js::Dropdown",
+                    "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.js::Tooltip",
+                    "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.js::Popover"
+                ],
+                "children": {}
+            },
+            "bootstrap_overlay_components_toast": {
+                "components": [
+                    "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.js::Toast",
+                    "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.esm.js::Toast",
+                    "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.js::Toast"
+                ],
+                "children": {}
+            }
+        }
+    },
+    "bootstrap_interactive_content_components": {
+        "path": "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js",
+        "components": [
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.js::Alert",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.js::Button",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.js::Collapse",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.js::Carousel",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.js::Tab",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.bundle.js::ScrollSpy",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.esm.js::Alert",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.esm.js::Button",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.esm.js::Collapse",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.esm.js::Carousel",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.esm.js::Tab",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.esm.js::ScrollSpy",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.js::Alert",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.js::Button",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.js::Collapse",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.js::Carousel",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.js::Tab",
+            "0-Agents/AgentsWebUI/wwwroot/lib/bootstrap/dist/js/bootstrap.js::ScrollSpy"
+        ],
+        "children": {}
+    }
+}
